@@ -12,11 +12,11 @@ import (
 
 func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
 
-	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
+	vertexShader, err := compileShader(vertSrc, gl.VERTEX_SHADER)
 	if err != nil {
 		panic(err)
 	}
-	fragmentShader, err = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+	fragmentShader, err = compileShader(fragSrc, gl.FRAGMENT_SHADER)
 	if err != nil {
 		panic(err)
 	}
