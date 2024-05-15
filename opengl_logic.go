@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	_ "image/jpeg"
 	_ "image/png"
 	"log"
 
@@ -130,7 +131,7 @@ func initGLProgram() OpenGLProgram {
 
 	textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
 	gl.Uniform1i(textureUniform, 0)
-	texture := loadPictureAsTexture("test.png")
+	texture := loadPictureAsTexture("hand.jpeg")
 
 	loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
 	gl.Uniform2f(loc, float32(width), float32(height))
