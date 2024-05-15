@@ -32,6 +32,7 @@ func getTextFromFile(filePath string) string {
 		return ""
 	}
 	str := string(rawData)
+	str += "\x00"
 
 	return str
 
