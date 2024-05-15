@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
+
+	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 func main() {
@@ -25,6 +28,12 @@ func main() {
 
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
+
+		if window.GetKey(glfw.KeyR) == glfw.Press {
+			CleanUp(program)
+			program = initGLProgram()
+			fmt.Println("RELOADED!")
+		}
 		glDraw(window, program)
 	}
 }

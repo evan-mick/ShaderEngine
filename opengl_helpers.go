@@ -10,7 +10,7 @@ import (
 	"github.com/go-gl/gl/v2.1/gl"
 )
 
-func createShaders() (vertexShader uint32, fragmentShader uint32) {
+func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
 
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
@@ -22,6 +22,19 @@ func createShaders() (vertexShader uint32, fragmentShader uint32) {
 	}
 
 	return vertexShader, fragmentShader
+}
+
+func getTextFromFile(filePath string) string {
+	rawData, err := os.ReadFile(filePath)
+
+	if err != nil {
+		fmt.Println("ERROR GETTING STRING FROM FILE " + filePath + " " + err.Error())
+		return ""
+	}
+	str := string(rawData)
+
+	return str
+
 }
 
 // Compiles shader with open GL

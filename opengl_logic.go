@@ -117,7 +117,9 @@ func initGLProgram() OpenGLProgram {
 	vao, vbo := makeVao(quad)
 	prog := gl.CreateProgram()
 
-	vertex, frag := createShaders()
+	fragSrc := getTextFromFile("test.frag")
+
+	vertex, frag := createShaders(fragSrc, vertexShaderSource)
 	gl.AttachShader(prog, vertex)
 	gl.AttachShader(prog, frag)
 	gl.LinkProgram(prog)
