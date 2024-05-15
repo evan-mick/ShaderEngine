@@ -23,8 +23,8 @@ func main() {
 
 	program := initGLProgram()
 
-	vao := makeVao(quad)
+	// vao := makeVao(quad)
 	for !window.ShouldClose() {
-		glDraw(vao, window, program)
+		glDraw(window, program)
 	}
 }
