@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"image"
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
 
+	vidio "github.com/AlexEidt/Vidio"
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
@@ -88,6 +90,8 @@ type GlobalGLData struct {
 }
 
 var globalDat GlobalGLData
+var video *vidio.Video
+var images []*image.RGBA
 
 // var deleteShaders [uint32]
 
@@ -144,7 +148,7 @@ func initGLProgram() OpenGLProgram {
 	textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
 	gl.Uniform1i(textureUniform, 0)
 	texture := loadPictureAsTexture("test.png")
-	setupVideo("testvid.mov")
+	video = setupVideo("testvid.mov")
 
 	loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
 	gl.Uniform2f(loc, float32(width), float32(height))
@@ -170,6 +174,8 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	time := glfw.GetTime()
 	elapsed := time - previousTime
 	previousTime = time
+
+	updateVideo(time, video)
 
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))

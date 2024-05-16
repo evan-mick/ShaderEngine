@@ -136,17 +136,31 @@ func setupVideo(file string) *vidio.Video {
 		fmt.Println("VIDEO LOAD ERROR")
 	}
 
-	rgba := image.NewRGBA(image.Rect(0, 0, video.Height(), video.Width()))
-	if rgba.Stride != rgba.Rect.Size().X*4 {
-		if err != nil {
-			fmt.Println("Texture error at path " + file + " Unsupported stride")
-			return nil
-		}
+	// rgba := image.NewRGBA(image.Rect(0, 0, video.Height(), video.Width()))
+	// if rgba.Stride != rgba.Rect.Size().X*4 {
+	// 	if err != nil {
+	// 		fmt.Println("Texture error at path " + file + " Unsupported stride")
+	// 		return nil, nil
+	// 	}
+	// }
+
+	s := make([]int, video.Frames())
+	for i := range video.Frames() / 3 {
+		s[i] = i
+		fmt.Printf("S %d", i)
+	}
+	// var buffer []byte
+	// video.SetFrameBuffer(rgba.Pix)
+	imgs, err := video.ReadFrames(s...)
+
+	if err != nil {
+		fmt.Println("ERROR with reading frames " + err.Error())
+		return nil
 	}
 
-	// var buffer []byte
-	video.SetFrameBuffer(rgba.Pix)
-	video.ReadFrame(1)
+	fmt.Printf("Images done loading %d %d\n", len(imgs), len(s))
+	// video.FPS()
+	// video.Frames()
 
 	// f, _ := os.Create(fmt.Sprintf("new_test.jpg"))
 	// jpeg.Encode(f, rgba, nil)
@@ -155,7 +169,7 @@ func setupVideo(file string) *vidio.Video {
 
 	// draw.Draw(rgba, rgba.Bounds(), , image.Point{0, 0}, draw.Src)
 	// draw.Draw(rgba, rgba.Bounds(), rgba, image.Point{0, 0}, draw.Src)
-
+	rgba := imgs[0]
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
@@ -168,4 +182,24 @@ func setupVideo(file string) *vidio.Video {
 		gl.Ptr(rgba.Pix))
 
 	return video
+}
+
+func updateVideo(seconds float64, video *vidio.Video) {
+
+	frame := int(seconds*video.FPS()) % int(video.Frames())
+	fmt.Println("FRAME %d", frame)
+	// video.ReadFrame(int(frame))
+
+	rgba := images[frame]
+
+	gl.TexImage2D(
+		gl.TEXTURE_2D,
+		0,
+		gl.RGBA,
+		int32(rgba.Rect.Size().X),
+		int32(rgba.Rect.Size().Y),
+		0,
+		gl.RGBA,
+		gl.UNSIGNED_BYTE,
+		gl.Ptr(rgba.Pix))
 }
