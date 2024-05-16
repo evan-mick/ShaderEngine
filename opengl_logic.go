@@ -14,9 +14,6 @@ import (
 // https://kylewbanks.com/blog/tutorial-opengl-with-golang-part-1-hello-opengl
 
 const (
-	width  = 1000
-	height = 1000
-
 	vertexShaderSource = `
 		#version 410
 		layout (location = 0) in vec3 position;
@@ -40,6 +37,8 @@ const (
 )
 
 var (
+	width  = 1000
+	height = 1000
 	// triangle = []float32{
 	// 	0, 0.5, 0,
 	// 	-0.5, -0.5, 0,
@@ -83,6 +82,13 @@ type OpenGLProgram struct {
 	vao      uint32
 }
 
+type GlobalGLData struct {
+	fullscreen bool
+	window     *glfw.Window
+}
+
+var globalDat GlobalGLData
+
 // var deleteShaders [uint32]
 
 func glInit() *glfw.Window {
@@ -90,13 +96,19 @@ func glInit() *glfw.Window {
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
-	glfw.WindowHint(glfw.Resizable, glfw.False)
+	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
+	// monitor := glfw.GetPrimaryMonitor() // The primary monitor.. Later Occulus?..
+
+	// mode := monitor.GetVideoMode()
+	// width = //mode.Width
+	// height = //mode.Height
 	window, err := glfw.CreateWindow(width, height, "Test", nil, nil)
+	globalDat.window = window
 
 	if err != nil {
 		panic(err)
@@ -131,7 +143,8 @@ func initGLProgram() OpenGLProgram {
 
 	textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
 	gl.Uniform1i(textureUniform, 0)
-	texture := loadPictureAsTexture("hand.jpeg")
+	texture := loadPictureAsTexture("test.png")
+	setupVideo("testvid.mov")
 
 	loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
 	gl.Uniform2f(loc, float32(width), float32(height))
