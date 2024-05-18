@@ -27,11 +27,11 @@ void main() {
 
 
 
-    float dist = sqrt((left - right) * (left - right) + (up - down) * (up - down));
+    // float dist = sqrt((left - right) * (left - right) + (up - down) * (up - down));
 
-    float outline = ((dist > 0.07f) ? 1.f : 0.f) * ((0.5*sin(iTime)) + 1.f);
+    // float outline = ((dist > 0.07f) ? 1.f : 0.f) * ((0.5*sin(iTime)) + 1.f);
 
-    fragColor = vec4(outline, 0.f, 1.f, 1.f);
+    // fragColor = vec4(outline, 0.f, 1.f, 1.f);
 
     // fragColor = vec4(float(gl_FragCoord.x)/res.x, float(gl_FragCoord.y)/res.y, 1.0, 1.0);//vec4(0.0, 0.0, 1.0, 1.0); //vec4(gl_FragCoord.x/res.x, gl_FragCoord.y/res.y, gl_FragCoord.z/500.f, 1.0);
     // fragColor = vec4(sin(iTime), 0.0, 0.0, 1.0);

@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"gocv.io/x/gocv"
 )
 
 // Thank you sweet prince
@@ -89,7 +88,7 @@ type GlobalGLData struct {
 }
 
 var globalDat GlobalGLData
-var video *gocv.VideoCapture
+var video VideoData
 
 // var video *vidio.Video
 // var rgbaMain *image.RGBA

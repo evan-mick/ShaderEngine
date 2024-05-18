@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
-	"gocv.io/x/gocv"
 )
 
 func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
@@ -128,34 +127,7 @@ func loadPictureAsTexture(file string) uint32 {
 func setupVideo(file string) {
 
 	var err error
-	video, err = gocv.OpenVideoCapture(file)
-
-	mat := gocv.NewMat()
-
-	video.Read(&mat)
-
-	// video, err := vidio.NewVideo(file)
-
-	// if err != nil {
-	// 	fmt.Println("VIDEO LOAD ERROR")
-	// }
-
-	// rgba := image.NewRGBA(image.Rect(0, 0, video.Height(), video.Width()))
-	// if rgba.Stride != rgba.Rect.Size().X*4 {
-	// 	if err != nil {
-	// 		fmt.Println("Texture error at path " + file + " Unsupported stride")
-	// 		return nil
-	// 	}
-	// }
-
-	// s := make([]int, video.Frames())
-	// for i := range video.Frames() / 3 {
-	// 	s[i] = i
-	// 	fmt.Printf("S %d", i)
-	// }
-	// var buffer []byte
-	// video.SetFrameBuffer(rgba.Pix)
-	// err = video.ReadFrame(0) //video.ReadFrames(s...)
+	video, err = CreateVideoFromFile(file)
 
 	if err != nil {
 		fmt.Println("ERROR with reading frames " + err.Error())
@@ -163,30 +135,16 @@ func setupVideo(file string) {
 		// return nil
 	}
 
-	// fmt.Printf("Images done loading %d %d\n", 1, len(s))
-	// video.FPS()
-	// video.Frames()
-
-	// f, _ := os.Create(fmt.Sprintf("new_test.jpg"))
-	// jpeg.Encode(f, rgba, nil)
-	// f.Close()
-	// jpeg.Decode(video.FrameBuffer())
-
-	// draw.Draw(rgba, rgba.Bounds(), , image.Point{0, 0}, draw.Src)
-	// draw.Draw(rgba, rgba.Bounds(), rgba, image.Point{0, 0}, draw.Src)
-
-	gocv.CvtColor(mat, &mat, gocv.ColorBGRToRGB)
-
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
 		gl.RGB,
-		int32(mat.Cols()),
-		int32(mat.Rows()),
+		int32(video.width),
+		int32(video.height),
 		0,
 		gl.RGB,
 		gl.UNSIGNED_BYTE,
-		gl.Ptr(mat.DataPtrInt8()))
+		gl.Ptr(video.GetData()))
 
 	// rgbaMain = rgba
 	// return video
@@ -194,29 +152,20 @@ func setupVideo(file string) {
 
 func updateVideo(seconds float64) {
 
-	//frame := int(seconds*video.FPS()) % int(video.Frames())
+	frame := int(seconds*float64(video.fps)) % int(video.frames)
 	//fmt.Println("FRAME %d", frame)
-	//video.ReadFrame(int(frame))
+	video.ReadFrame(int(frame))
 
-	mat := gocv.NewMat()
-
-	read := video.Read(&mat)
-
-	if !read {
-		fmt.Println("VIDEO DONE")
-		return
-	}
-
-	gocv.CvtColor(mat, &mat, gocv.ColorBGRToRGB)
+	video.ReadFrame(frame)
 
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
 		gl.RGB,
-		int32(mat.Cols()),
-		int32(mat.Rows()),
+		int32(video.width),
+		int32(video.height),
 		0,
 		gl.RGB,
 		gl.UNSIGNED_BYTE,
-		gl.Ptr(mat.DataPtrInt8()))
+		gl.Ptr(video.GetData()))
 }
