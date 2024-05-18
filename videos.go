@@ -3,12 +3,15 @@ package main
 import (
 	"fmt"
 
+	"github.com/go-gl/gl/v2.1/gl"
+	ffmpeg_go "github.com/u2takey/ffmpeg-go"
 	"gocv.io/x/gocv"
 )
 
 type VideoData struct {
 	video        *gocv.VideoCapture
-	fps          int
+	writer       *gocv.VideoWriter
+	fps          float64
 	frames       int
 	currentFrame int
 	width        int
@@ -17,17 +20,18 @@ type VideoData struct {
 	// currentMatIndex int
 }
 
-func CreateVideoFromFile(file string) (VideoData, error) {
+func CreateVideoFromFile(file string) (*VideoData, error) {
 	video, err := gocv.OpenVideoCapture(file)
 
 	if err != nil {
 		fmt.Println("VIDEO OPEN ERROR " + err.Error())
-		return VideoData{}, err
+		return nil, err
 	}
 
 	dat := VideoData{
 		video:        video,
-		fps:          int(video.Get(gocv.VideoCaptureFPS)),
+		writer:       nil,
+		fps:          video.Get(gocv.VideoCaptureFPS),
 		frames:       int(video.Get(gocv.VideoCaptureFrameCount)),
 		width:        int(video.Get(gocv.VideoCaptureFrameWidth)),
 		height:       int(video.Get(gocv.VideoCaptureFrameHeight)),
@@ -36,10 +40,11 @@ func CreateVideoFromFile(file string) (VideoData, error) {
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
 		// currentMatIndex: 0,
 	}
+	dat.writer = setupVideoWriter(&dat)
 
 	dat.ReadFrame(0)
 
-	return dat, nil
+	return &dat, nil
 
 }
 
@@ -65,6 +70,39 @@ func (dat *VideoData) ReadFrame(frame int) {
 	dat.currentFrame = frame
 	gocv.CvtColor(dat.material, &dat.material, gocv.ColorBGRToRGB)
 
+}
+
+func setupVideoWriter(data *VideoData) *gocv.VideoWriter {
+	writer, err := gocv.VideoWriterFile("testout.avi", "MPEG", float64(data.fps), data.width, data.height, true)
+
+	if err != nil {
+		fmt.Println("Video writer creation error " + err.Error())
+		return nil
+	}
+
+	return writer
+}
+
+func writeData(data *VideoData) {
+
+	// newMat := gocv.NewMat()
+	// data.material.CopyTo(&newMat)
+	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGR, gl.UNSIGNED_BYTE, gl.Ptr(data.GetData()))
+	data.writer.Write(data.material)
+}
+
+func endVideo(data *VideoData) {
+	data.writer.Close()
+	data.video.Close()
+	err := ffmpeg_go.Input("testout.avi").
+		Filter("transpose", ffmpeg_go.Args{"0"}).
+		Filter("transpose", ffmpeg_go.Args{"2"}).
+		Output("test.avi").
+		Run()
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 //	video.Set(gocv.VideoCapturePosFrames, 0)

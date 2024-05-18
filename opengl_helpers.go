@@ -124,14 +124,13 @@ func loadPictureAsTexture(file string) uint32 {
 	return texture
 }
 
-func setupVideo(file string) {
+func setupVideo(file string) *VideoData {
 
-	var err error
-	video, err = CreateVideoFromFile(file)
+	video, err := CreateVideoFromFile(file)
 
 	if err != nil {
 		fmt.Println("ERROR with reading frames " + err.Error())
-		return
+		return nil
 		// return nil
 	}
 
@@ -146,16 +145,18 @@ func setupVideo(file string) {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(video.GetData()))
 
+	return video
 	// rgbaMain = rgba
 	// return video
 }
 
-func updateVideo(seconds float64) {
+func updateVideo(seconds float64, video *VideoData) {
+
+	if video == nil {
+		return
+	}
 
 	frame := int(seconds*float64(video.fps)) % int(video.frames)
-	//fmt.Println("FRAME %d", frame)
-	video.ReadFrame(int(frame))
-
 	video.ReadFrame(frame)
 
 	gl.TexImage2D(

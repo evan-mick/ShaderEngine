@@ -28,18 +28,24 @@ func main() {
 
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
-		checkInputs(window, &program)
 		glDraw(window, program)
+		checkInputs(window, &program)
 	}
+
+	glTerminate()
+	CleanUp(&program)
+	endVideo(program.videoData)
 }
 
 func checkInputs(window *glfw.Window, program *OpenGLProgram) {
 	if window.GetKey(glfw.KeyR) == glfw.Press {
-		CleanUp(*program)
+		CleanUp(program)
 		*program = initGLProgram()
 		fmt.Println("RELOADED!")
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN
+	} else if window.GetKey(glfw.KeyEscape) == glfw.Press {
+		window.SetShouldClose(true)
 	}
 
 }

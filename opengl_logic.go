@@ -80,6 +80,8 @@ type OpenGLProgram struct {
 	textures []uint32
 	vbo      uint32
 	vao      uint32
+
+	videoData *VideoData
 }
 
 type GlobalGLData struct {
@@ -88,7 +90,6 @@ type GlobalGLData struct {
 }
 
 var globalDat GlobalGLData
-var video VideoData
 
 // var video *vidio.Video
 // var rgbaMain *image.RGBA
@@ -148,7 +149,8 @@ func initGLProgram() OpenGLProgram {
 	textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
 	gl.Uniform1i(textureUniform, 0)
 	texture := loadPictureAsTexture("test.png")
-	setupVideo("testvid.mov")
+
+	vidData := setupVideo("testvid.mov")
 
 	loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
 	gl.Uniform2f(loc, float32(width), float32(height))
@@ -163,6 +165,7 @@ func initGLProgram() OpenGLProgram {
 		textures:   []uint32{texture},
 		vao:        vao,
 		vbo:        vbo,
+		videoData:  vidData,
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
 }
@@ -176,7 +179,7 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	previousTime = time
 
 	// updateVideo(time, video)
-	updateVideo(time)
+	updateVideo(time, program.videoData)
 
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
@@ -192,6 +195,8 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
+	writeData(program.videoData)
+
 	glfw.PollEvents()
 	window.SwapBuffers()
 }
@@ -204,13 +209,12 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 
 // FREEING FUNCTIONS
 
-func CleanUp(prog OpenGLProgram) {
+func CleanUp(prog *OpenGLProgram) {
 	// May need to use for loops?
 	gl.DeleteTextures(int32(len(prog.textures)), &prog.textures[0])
 	gl.DeleteVertexArrays(1, &prog.vao)
 	gl.DeleteBuffers(1, &prog.vbo)
 	gl.DeleteProgram(prog.programID)
-
 }
 
 //func genBuffers
