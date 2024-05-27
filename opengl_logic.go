@@ -199,6 +199,9 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 	gl.BindVertexArray(prog.vao)
 
+	loc := gl.GetUniformLocation(prog.programID, gl.Str("res\x00"))
+	gl.Uniform2f(loc, float32(input.width), float32(input.height))
+
 	for i, texturePath := range input.textures {
 		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg")
 		isVideo := strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
