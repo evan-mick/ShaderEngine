@@ -203,6 +203,8 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 			continue
 		}
 
+		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
+
 		var texture uint32
 
 		if isPhoto {
@@ -216,13 +218,13 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 		// TODO: What if out of range? More than 32 textures?
 		// for _, text := range newTextures {
-		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
-		gl.BindTexture(gl.TEXTURE_2D, texture)
+
+		// gl.BindTexture(gl.TEXTURE_2D, texture)
 
 		str := fmt.Sprintf("tex%d", i)
 		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
 		gl.Uniform1i(textureUniform, int32(i))
-		fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
+		// fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
 		// }
 
 	}

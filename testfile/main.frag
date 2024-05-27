@@ -30,7 +30,7 @@ void main() {
     float left = brightness(texture(textureSampler, coord + vec2(pix.x, 0.0)));
     float right = brightness(texture(textureSampler, coord + vec2(-pix.x, 0.0)))*/
 
-    fragColor = texture(tex0, uv);
+    fragColor = (fract(iTime) * texture(tex1, uv)) + ((1.0 - fract(iTime)) * texture(tex0, uv));
 
 
 
