@@ -1,0 +1,10 @@
+{
+    "width" : 1920,
+    "height" : 1080,
+    "shader" : "testfile/main.frag",
+    "textures" : [
+        "testfile/cs_rose.png",
+        "testfile/cs_greenie.png",
+        "testfile/testvid.mov"
+    ]
+}

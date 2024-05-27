@@ -20,23 +20,30 @@ func main() {
 		window.WaitKey(1)
 	}*/
 
-	file := "test.frag"
+	file := "main.json"
 
 	if len(os.Args) > 1 {
 		file = os.Args[1]
 	}
 
+	in, err := ParseJsonToInputFile(file)
+	fmt.Println(in)
+	if err != nil {
+		fmt.Println("ERROR: issue parsing input file " + err.Error())
+		return
+	}
+
 	runtime.LockOSThread()
 
-	window := glInit()
+	window := glInit(&in)
 	defer glTerminate()
 
-	program := initGLProgram(file)
+	program := initGLProgram(&in)
 
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
 		glDraw(window, program)
-		checkInputs(window, &program)
+		checkInputs(window, &program, &in)
 	}
 
 	glTerminate()
@@ -48,10 +55,10 @@ func main() {
 
 }
 
-func checkInputs(window *glfw.Window, program *OpenGLProgram) {
+func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 	if window.GetKey(glfw.KeyR) == glfw.Press {
 		CleanUp(program)
-		*program = initGLProgram(program.fileName)
+		*program = initGLProgram(in)
 		fmt.Println("RELOADED!")
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN

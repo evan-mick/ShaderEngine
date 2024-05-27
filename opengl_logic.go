@@ -44,8 +44,8 @@ const (
 )
 
 var (
-	width  = 1000
-	height = 1000
+	//width  = 1000
+	//height = 1000
 	// triangle = []float32{
 	// 	0, 0.5, 0,
 	// 	-0.5, -0.5, 0,
@@ -114,7 +114,7 @@ var globalDat GlobalGLData
 
 // var deleteShaders [uint32]
 
-func glInit() *glfw.Window {
+func glInit(in *InputFile) *glfw.Window {
 
 	if err := glfw.Init(); err != nil {
 		panic(err)
@@ -130,7 +130,7 @@ func glInit() *glfw.Window {
 	// mode := monitor.GetVideoMode()
 	// width = //mode.Width
 	// height = //mode.Height
-	window, err := glfw.CreateWindow(width, height, "Test", nil, nil)
+	window, err := glfw.CreateWindow(in.Width, in.Height, "Test", nil, nil)
 	globalDat.window = window
 
 	if err != nil {
@@ -145,7 +145,7 @@ func glTerminate() {
 	glfw.Terminate()
 }
 
-func initGLProgram(file string) OpenGLProgram {
+func initGLProgram(in *InputFile) OpenGLProgram {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
@@ -155,10 +155,10 @@ func initGLProgram(file string) OpenGLProgram {
 	vao, vbo := makeVao(quad)
 	prog := gl.CreateProgram()
 
-	fragSrc, err := getTextFromFile("test.frag")
+	fragSrc, err := getTextFromFile(in.ShaderPath)
 
 	if err != nil {
-		panic("Error getting file")
+		panic("Error getting file ")
 	}
 
 	vertex, frag := createShaders(fragSrc, vertexShaderSource)
@@ -168,21 +168,9 @@ func initGLProgram(file string) OpenGLProgram {
 
 	gl.UseProgram(prog)
 
-	// textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
-	// gl.Uniform1i(textureUniform, 0)
-	// texture := loadPictureAsTexture("test.png")
-
-	// vidData := setupVideo("testvid.mov")
-
-	// loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
-	// gl.Uniform2f(loc, float32(width), float32(height))
-	// fmt.Printf("LOC %d", loc)
-
-	// gl.bindfra(prog, 0, gl.Str("outputColor\x00"))
-
-	return OpenGLProgram{
+	retProg := OpenGLProgram{
 		programID:  prog,
-		fileName:   file,
+		fileName:   in.ShaderPath,
 		vertexID:   vertex,
 		fragmentID: frag,
 		textures:   []uint32{},
@@ -191,6 +179,10 @@ func initGLProgram(file string) OpenGLProgram {
 		videos:     []*VideoData{},
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
+
+	LoadOpenGLDataFromInputFile(&retProg, in)
+
+	return retProg
 }
 
 func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
@@ -200,9 +192,9 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	gl.BindVertexArray(prog.vao)
 
 	loc := gl.GetUniformLocation(prog.programID, gl.Str("res\x00"))
-	gl.Uniform2f(loc, float32(input.width), float32(input.height))
+	gl.Uniform2f(loc, float32(input.Width), float32(input.Height))
 
-	for i, texturePath := range input.textures {
+	for i, texturePath := range input.Textures {
 		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg")
 		isVideo := strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
 
@@ -210,9 +202,6 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 			fmt.Println("ERROR, invalid file format for " + texturePath)
 			continue
 		}
-		str := fmt.Sprintf("tex%d\x00", i)
-		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str))
-		gl.Uniform1i(textureUniform, 0)
 
 		var texture uint32
 
@@ -226,10 +215,15 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		newTextures = append(newTextures, texture)
 
 		// TODO: What if out of range? More than 32 textures?
-		for _, text := range newTextures {
-			gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
-			gl.BindTexture(gl.TEXTURE_2D, text)
-		}
+		// for _, text := range newTextures {
+		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
+		gl.BindTexture(gl.TEXTURE_2D, texture)
+
+		str := fmt.Sprintf("tex%d", i)
+		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
+		gl.Uniform1i(textureUniform, int32(i))
+		fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
+		// }
 
 	}
 

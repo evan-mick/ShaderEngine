@@ -1,9 +1,0 @@
-{
-    "width" : 1920,
-    "height" : 1080,
-    "textures" : [
-        "cs_greenie.png",
-        "cs_rose.png",
-        "testvid.mov"
-    ]
-}
