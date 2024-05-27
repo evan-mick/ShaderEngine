@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/go-gl/gl/v2.1/gl"
-	ffmpeg_go "github.com/u2takey/ffmpeg-go"
 	"gocv.io/x/gocv"
 )
 
 type VideoData struct {
 	video        *gocv.VideoCapture
 	writer       *gocv.VideoWriter
+	texture      uint32
 	fps          float64
 	frames       int
 	currentFrame int
@@ -94,7 +94,7 @@ func writeData(data *VideoData) {
 func endVideo(data *VideoData) {
 	data.writer.Close()
 	data.video.Close()
-	err := ffmpeg_go.Input("testout.avi").
+	/*err := ffmpeg_go.Input("testout.avi").
 		Filter("transpose", ffmpeg_go.Args{"0"}).
 		Filter("transpose", ffmpeg_go.Args{"2"}).
 		Output("test.avi").
@@ -102,7 +102,7 @@ func endVideo(data *VideoData) {
 
 	if err != nil {
 		fmt.Println(err.Error())
-	}
+	}*/
 }
 
 //	video.Set(gocv.VideoCapturePosFrames, 0)

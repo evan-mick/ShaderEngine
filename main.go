@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -19,12 +20,18 @@ func main() {
 		window.WaitKey(1)
 	}*/
 
+	file := "test.frag"
+
+	if len(os.Args) > 1 {
+		file = os.Args[1]
+	}
+
 	runtime.LockOSThread()
 
 	window := glInit()
 	defer glTerminate()
 
-	program := initGLProgram()
+	program := initGLProgram(file)
 
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
@@ -34,13 +41,17 @@ func main() {
 
 	glTerminate()
 	CleanUp(&program)
-	endVideo(program.videoData)
+
+	for _, vid := range program.videos {
+		endVideo(vid)
+	}
+
 }
 
 func checkInputs(window *glfw.Window, program *OpenGLProgram) {
 	if window.GetKey(glfw.KeyR) == glfw.Press {
 		CleanUp(program)
-		*program = initGLProgram()
+		*program = initGLProgram(program.fileName)
 		fmt.Println("RELOADED!")
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN

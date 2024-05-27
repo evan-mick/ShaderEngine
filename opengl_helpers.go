@@ -24,17 +24,17 @@ func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmen
 	return vertexShader, fragmentShader
 }
 
-func getTextFromFile(filePath string) string {
+func getTextFromFile(filePath string) (string, error) {
 	rawData, err := os.ReadFile(filePath)
 
 	if err != nil {
 		fmt.Println("ERROR GETTING STRING FROM FILE " + filePath + " " + err.Error())
-		return ""
+		return "", err
 	}
 	str := string(rawData)
 	str += "\x00"
 
-	return str
+	return str, nil
 
 }
 
@@ -124,16 +124,24 @@ func loadPictureAsTexture(file string) uint32 {
 	return texture
 }
 
-func setupVideo(file string) *VideoData {
+func setupVideo(file string) (uint32, *VideoData) {
 
 	video, err := CreateVideoFromFile(file)
 
 	if err != nil {
 		fmt.Println("ERROR with reading frames " + err.Error())
-		return nil
+		return 0, nil
 		// return nil
 	}
 
+	var texture uint32
+	gl.Enable(gl.TEXTURE_2D)
+	gl.GenTextures(1, &texture)
+	gl.BindTexture(gl.TEXTURE_2D, texture)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
@@ -145,7 +153,8 @@ func setupVideo(file string) *VideoData {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(video.GetData()))
 
-	return video
+	video.texture = texture
+	return texture, video
 	// rgbaMain = rgba
 	// return video
 }
@@ -159,6 +168,7 @@ func updateVideo(seconds float64, video *VideoData) {
 	frame := int(seconds*float64(video.fps)) % int(video.frames)
 	video.ReadFrame(frame)
 
+	gl.BindTexture(gl.TEXTURE_2D, video.texture)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,

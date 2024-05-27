@@ -5,6 +5,8 @@ uniform float deltaTime;
 
 out vec4 fragColor;
 
+in vec2 uv; 
+
 uniform vec2 res; 
 
 
@@ -14,7 +16,7 @@ float brightness(vec4 col) {
 
 void main() {
 
-    vec2 coord = vec2(gl_FragCoord.x/res.x, 1.0 - (gl_FragCoord.y/res.y));
+    /*vec2 coord = vec2(gl_FragCoord.x/res.x, 1.0 - (gl_FragCoord.y/res.y));
     coord.x += 0.1 * sin(5.0 * sin(coord.y * 10.0 + iTime));
 
     vec2 pix = vec2(1.0/res.x, 1.0/res.y)/2.0;
@@ -22,7 +24,9 @@ void main() {
     float up = brightness(texture(textureSampler, coord + vec2(0.0, pix.y)));
     float down = brightness(texture(textureSampler, coord + vec2(0.0, -pix.y)));
     float left = brightness(texture(textureSampler, coord + vec2(pix.x, 0.0)));
-    float right = brightness(texture(textureSampler, coord + vec2(-pix.x, 0.0)));
+    float right = brightness(texture(textureSampler, coord + vec2(-pix.x, 0.0)))*/
+
+    fragColor = texture(textureSampler, uv);
 
 
 

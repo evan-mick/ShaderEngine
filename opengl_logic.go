@@ -5,6 +5,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
+	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -16,9 +17,15 @@ import (
 const (
 	vertexShaderSource = `
 		#version 410
+		// attribute vec2 vertexIn;
 		layout (location = 0) in vec3 position;
+
+		out vec2 uv; 
+
 		void main() {
-			gl_Position = vec4(position, 1.0);
+			uv = (position.xy * 0.5) + 0.5;
+			// uv.y = 1.0 - uv.y; 
+			gl_Position = vec4(position.x, -position.y, 0.0, 1.0);
 		}
 	` + "\x00"
 
@@ -44,14 +51,24 @@ var (
 	// 	-0.5, -0.5, 0,
 	// 	0.5, -0.5, 0,
 	// }
+	/*quad = []float32{
+		-0.5, 0.5, 0,
+		-0.5, -0.5, 0,
+		0.5, -0.5, 0,
+
+		0.5, -0.5, 0,
+		0.5, 0.5, 0,
+		-0.5, 0.5, 0,
+	}*/
 	quad = []float32{
-		-1, 1, 0,
-		-1, -1, 0,
-		1, -1, 0,
 
 		1, -1, 0,
 		1, 1, 0,
 		-1, 1, 0,
+
+		-1, 1, 0,
+		-1, -1, 0,
+		1, -1, 0,
 	}
 
 	previousTime float64
@@ -72,6 +89,7 @@ var (
 
 type OpenGLProgram struct {
 	programID  uint32
+	fileName   string
 	vertexID   uint32
 	fragmentID uint32
 	// data       []GLData
@@ -81,7 +99,7 @@ type OpenGLProgram struct {
 	vbo      uint32
 	vao      uint32
 
-	videoData *VideoData
+	videos []*VideoData
 }
 
 type GlobalGLData struct {
@@ -127,7 +145,7 @@ func glTerminate() {
 	glfw.Terminate()
 }
 
-func initGLProgram() OpenGLProgram {
+func initGLProgram(file string) OpenGLProgram {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
@@ -137,7 +155,11 @@ func initGLProgram() OpenGLProgram {
 	vao, vbo := makeVao(quad)
 	prog := gl.CreateProgram()
 
-	fragSrc := getTextFromFile("test.frag")
+	fragSrc, err := getTextFromFile("test.frag")
+
+	if err != nil {
+		panic("Error getting file")
+	}
 
 	vertex, frag := createShaders(fragSrc, vertexShaderSource)
 	gl.AttachShader(prog, vertex)
@@ -146,28 +168,70 @@ func initGLProgram() OpenGLProgram {
 
 	gl.UseProgram(prog)
 
-	textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
-	gl.Uniform1i(textureUniform, 0)
-	texture := loadPictureAsTexture("test.png")
+	// textureUniform := gl.GetUniformLocation(prog, gl.Str("textureSampler\x00"))
+	// gl.Uniform1i(textureUniform, 0)
+	// texture := loadPictureAsTexture("test.png")
 
-	vidData := setupVideo("testvid.mov")
+	// vidData := setupVideo("testvid.mov")
 
-	loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
-	gl.Uniform2f(loc, float32(width), float32(height))
-	fmt.Printf("LOC %d", loc)
+	// loc := gl.GetUniformLocation(prog, gl.Str("res\x00"))
+	// gl.Uniform2f(loc, float32(width), float32(height))
+	// fmt.Printf("LOC %d", loc)
 
 	// gl.bindfra(prog, 0, gl.Str("outputColor\x00"))
 
 	return OpenGLProgram{
 		programID:  prog,
+		fileName:   file,
 		vertexID:   vertex,
 		fragmentID: frag,
-		textures:   []uint32{texture},
+		textures:   []uint32{},
 		vao:        vao,
 		vbo:        vbo,
-		videoData:  vidData,
+		videos:     []*VideoData{},
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
+}
+
+func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
+	var newTextures []uint32
+	var newVideos []*VideoData
+
+	gl.BindVertexArray(prog.vao)
+
+	for i, texturePath := range input.textures {
+		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg")
+		isVideo := strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
+
+		if !isPhoto && !isVideo {
+			fmt.Println("ERROR, invalid file format for " + texturePath)
+			continue
+		}
+		str := fmt.Sprintf("tex%d\x00", i)
+		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str))
+		gl.Uniform1i(textureUniform, 0)
+
+		var texture uint32
+
+		if isPhoto {
+			texture = loadPictureAsTexture(texturePath)
+		} else if isVideo {
+			var vidData *VideoData
+			texture, vidData = setupVideo(texturePath)
+			newVideos = append(newVideos, vidData)
+		}
+		newTextures = append(newTextures, texture)
+
+		// TODO: What if out of range? More than 32 textures?
+		for _, text := range newTextures {
+			gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
+			gl.BindTexture(gl.TEXTURE_2D, text)
+		}
+
+	}
+
+	prog.textures = newTextures
+	prog.videos = newVideos
 }
 
 func glDraw(window *glfw.Window, program OpenGLProgram) {
@@ -179,7 +243,9 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	previousTime = time
 
 	// updateVideo(time, video)
-	updateVideo(time, program.videoData)
+	for _, vid := range program.videos {
+		updateVideo(time, vid)
+	}
 
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
@@ -188,14 +254,11 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	//glSetShaderData(program)
 
 	gl.BindVertexArray(program.vao)
-
-	// TODO: bind all textures
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, program.textures[0])
-
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
-	writeData(program.videoData)
+	for _, vid := range program.videos {
+		writeData(vid)
+	}
 
 	glfw.PollEvents()
 	window.SwapBuffers()
