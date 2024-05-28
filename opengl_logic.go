@@ -168,6 +168,9 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 
 	gl.UseProgram(prog)
 
+	//gl.Enable(gl.BLEND)
+	//gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
 	retProg := OpenGLProgram{
 		programID:  prog,
 		fileName:   in.ShaderPath,
@@ -196,7 +199,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 	for i, texturePath := range input.Textures {
 		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg")
-		isVideo := strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
+		isVideo := strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
 
 		if !isPhoto && !isVideo {
 			fmt.Println("ERROR, invalid file format for " + texturePath)
@@ -255,9 +258,9 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	gl.BindVertexArray(program.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
-	for _, vid := range program.videos {
+	/*for _, vid := range program.videos {
 		writeData(vid)
-	}
+	}*/
 
 	glfw.PollEvents()
 	window.SwapBuffers()

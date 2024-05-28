@@ -8,6 +8,9 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
+var paused bool = false
+var lastKey glfw.Action = -1
+
 func main() {
 
 	/*webcam, _ := gocv.VideoCaptureDevice(0)
@@ -42,7 +45,10 @@ func main() {
 
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
-		glDraw(window, program)
+
+		if !paused {
+			glDraw(window, program)
+		}
 		checkInputs(window, &program, &in)
 	}
 
@@ -64,6 +70,13 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 		// FULLSCREEN
 	} else if window.GetKey(glfw.KeyEscape) == glfw.Press {
 		window.SetShouldClose(true)
+	} else if window.GetKey(glfw.KeyLeftShift) == glfw.Press {
+		if window.GetKey(glfw.KeyLeftShift) != lastKey {
+			fmt.Println("PAUSED")
+			paused = !paused
+		}
 	}
+
+	lastKey = window.GetKey(glfw.KeyLeftShift)
 
 }

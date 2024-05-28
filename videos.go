@@ -40,9 +40,15 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
 		// currentMatIndex: 0,
 	}
+
+	//
+
+	// dat.material.
 	dat.writer = setupVideoWriter(&dat)
 
 	dat.ReadFrame(0)
+
+	//fmt.Printf("COLS %d CHANNELS %d", dat.material.Cols(), dat.material.Channels())
 
 	return &dat, nil
 
@@ -68,7 +74,7 @@ func (dat *VideoData) ReadFrame(frame int) {
 		}
 	}
 	dat.currentFrame = frame
-	gocv.CvtColor(dat.material, &dat.material, gocv.ColorBGRToRGB)
+	gocv.CvtColor(dat.material, &dat.material, gocv.ColorBGRAToRGBA)
 
 }
 

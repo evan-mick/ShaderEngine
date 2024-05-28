@@ -145,11 +145,11 @@ func setupVideo(file string) (uint32, *VideoData) {
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
-		gl.RGB,
+		gl.RGBA,
 		int32(video.width),
 		int32(video.height),
 		0,
-		gl.RGB,
+		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(video.GetData()))
 
@@ -172,11 +172,11 @@ func updateVideo(seconds float64, video *VideoData) {
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
-		gl.RGB,
+		gl.RGBA,
 		int32(video.width),
 		int32(video.height),
 		0,
-		gl.RGB,
+		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(video.GetData()))
 }

@@ -15,7 +15,7 @@ uniform vec2 res;
 
 
 float brightness(vec4 col) {
-    return col.r*0.2f + col.b*0.6f + col.g*0.1f; 
+    return (col.r*0.2f + col.b*0.6f + col.g*0.1f) * col.a; 
 }
 
 void main() {
@@ -30,7 +30,62 @@ void main() {
     float left = brightness(texture(textureSampler, coord + vec2(pix.x, 0.0)));
     float right = brightness(texture(textureSampler, coord + vec2(-pix.x, 0.0)))*/
 
-    fragColor = (fract(iTime) * texture(tex1, uv)) + ((1.0 - fract(iTime)) * texture(tex0, uv));
+    // vec2 tile_uv = uv*10.0*(uv.x/uv.y);
+
+
+    vec4 col = vec4(46.0/255.0, 0, 132.0/255.0, 1.0);
+
+    vec2 tile_uv = uv*8.0;
+
+    float aspect = res.x/res.y;
+    tile_uv.x *= aspect;
+    tile_uv -= 0.1 * iTime;
+
+    tile_uv += vec2(0.01*sin(iTime + uv.y*10.0), 0.05*cos(iTime + uv.x*100.0));
+
+    vec2 frac = fract(tile_uv);
+    vec2 denom = floor(tile_uv);
+
+
+    
+
+    /*fragColor = texture(tex0, frac);
+
+    float bright = brightness(fragColor);
+
+    fragColor = col * fragColor.g * 10.0;
+
+    if (frac.x < 0.01 || frac.x > 0.99 || frac.y < 0.01 || frac.y > 0.99) {
+        fragColor = col;
+    }*/
+
+    float new_x = uv.x*aspect - 0.5;
+    fragColor = texture(tex2, vec2(new_x, uv.y));
+
+    if (new_x > 1.0 || new_x < 0.0 || uv.y > 1.0 || uv.y < 0.0) {
+        fragColor = vec4(1.0, 0.0, 0.0, 0.0);
+    }
+
+    if (fragColor.r > 195.0/255.0 && (fragColor.g < 110.0/255.0 && fragColor.b < 110.0/255.0)) {
+        fragColor = texture(tex0, frac);
+        float bright = brightness(fragColor);
+
+        fragColor = col * fragColor.g * 10.0;
+
+        if (frac.x < 0.01 || frac.x > 0.99 || frac.y < 0.01 || frac.y > 0.99) {
+            fragColor = col;
+        }
+        //fragColor = vec4(0.0);
+        return;
+    }
+
+
+    float bright = brightness(fragColor);
+
+    fragColor = floor((col * bright * 7.0) * 3.0)/3.0;
+
+
+    // fragColor = (fract(iTime) * texture(tex1, uv)) + ((1.0 - fract(iTime)) * texture(tex0, uv));
 
 
 
