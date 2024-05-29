@@ -227,7 +227,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		str := fmt.Sprintf("tex%d", i)
 		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
 		gl.Uniform1i(textureUniform, int32(i))
-		// fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
+		fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
 		// }
 
 	}

@@ -1,11 +1,12 @@
 {
-    "width" : 1920,
-    "height" : 1080,
+    "width" : 1080,
+    "height" : 1920,
     "shader" : "testfile/main.frag",
     "record" : false,
     "textures" : [
+        "testfile/skull2.png",
         "testfile/cs_greenie.png",
-        "testfile/cs_rose.png",
+        "testfile/tface1.png",
         "testfile/background.mp4"
     ]
 }

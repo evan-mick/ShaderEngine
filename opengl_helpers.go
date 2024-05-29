@@ -104,6 +104,7 @@ func loadPictureAsTexture(file string) uint32 {
 	var texture uint32
 	gl.Enable(gl.TEXTURE_2D)
 	gl.GenTextures(1, &texture)
+	gl.ActiveTexture(texture)
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
@@ -137,6 +138,7 @@ func setupVideo(file string) (uint32, *VideoData) {
 	var texture uint32
 	gl.Enable(gl.TEXTURE_2D)
 	gl.GenTextures(1, &texture)
+	gl.ActiveTexture(texture)
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
@@ -167,8 +169,9 @@ func updateVideo(seconds float64, video *VideoData) {
 
 	frame := int(seconds*float64(video.fps)) % int(video.frames)
 	video.ReadFrame(frame)
-
+	gl.ActiveTexture(video.texture)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
+	// fmt.Printf("video text %d", video.texture)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
