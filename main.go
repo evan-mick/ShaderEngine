@@ -58,6 +58,7 @@ func main() {
 	for _, vid := range program.videos {
 		endVideo(vid)
 	}
+	videoWriter.Close()
 
 }
 

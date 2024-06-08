@@ -2,11 +2,12 @@
     "width" : 1080,
     "height" : 1920,
     "shader" : "testfile/main.frag",
-    "record" : false,
+    "recordfps" : -1, 
     "textures" : [
         "testfile/skull2.png",
         "testfile/cs_greenie.png",
         "testfile/tface1.png",
-        "testfile/background.mp4"
+        "testfile/background.mp4",
+        "testfile/eyes1.mov"
     ]
 }

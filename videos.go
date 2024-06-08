@@ -8,17 +8,22 @@ import (
 )
 
 type VideoData struct {
-	video        *gocv.VideoCapture
-	writer       *gocv.VideoWriter
-	texture      uint32
-	fps          float64
-	frames       int
-	currentFrame int
-	width        int
-	height       int
-	material     gocv.Mat
+	video *gocv.VideoCapture
+	//writer       *gocv.VideoWriter
+	texture       uint32
+	fps           float64
+	frames        int
+	currentFrame  int
+	width         int
+	height        int
+	material      *gocv.Mat
+	allFramesRead bool
+	allFrames     []*gocv.Mat
 	// currentMatIndex int
 }
+
+var videoWriter *gocv.VideoWriter
+var writerData *VideoData
 
 func CreateVideoFromFile(file string) (*VideoData, error) {
 	video, err := gocv.OpenVideoCapture(file)
@@ -28,15 +33,18 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 		return nil, err
 	}
 
+	setMat := gocv.NewMat()
+	frames := int(video.Get(gocv.VideoCaptureFrameCount))
 	dat := VideoData{
-		video:        video,
-		writer:       nil,
+		video: video,
+		// writer:       nil,
 		fps:          video.Get(gocv.VideoCaptureFPS),
-		frames:       int(video.Get(gocv.VideoCaptureFrameCount)),
+		frames:       frames,
 		width:        int(video.Get(gocv.VideoCaptureFrameWidth)),
 		height:       int(video.Get(gocv.VideoCaptureFrameHeight)),
 		currentFrame: -1,
-		material:     gocv.NewMat(),
+		material:     &setMat,
+		allFrames:    make([]*gocv.Mat, 0, frames),
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
 		// currentMatIndex: 0,
 	}
@@ -44,9 +52,10 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 	//
 
 	// dat.material.
-	dat.writer = setupVideoWriter(&dat)
+	// used to be apart of video data
+	// videoWriter = setupVideoWriter(program)
 
-	dat.ReadFrame(0)
+	//dat.ReadFrame(0)
 
 	//fmt.Printf("COLS %d CHANNELS %d", dat.material.Cols(), dat.material.Channels())
 
@@ -63,23 +72,50 @@ func (dat *VideoData) ReadFrame(frame int) {
 		return
 	}
 
-	read := dat.video.Read(&dat.material)
+	if dat.allFramesRead {
+		dat.material = dat.allFrames[frame]
+		return
+	}
+
+	read := dat.video.Read(dat.material)
 
 	if !read {
 		dat.video.Set(gocv.VideoCapturePosFrames, 0)
-		read := dat.video.Read(&dat.material)
+		read := dat.video.Read(dat.material)
 		if !read {
 			fmt.Println("VIDEO READ FRAME ERROR")
 			return
 		}
 	}
 	dat.currentFrame = frame
-	gocv.CvtColor(dat.material, &dat.material, gocv.ColorBGRAToRGBA)
+	gocv.CvtColor(*dat.material, dat.material, gocv.ColorBGRAToRGBA)
 
 }
 
-func setupVideoWriter(data *VideoData) *gocv.VideoWriter {
-	writer, err := gocv.VideoWriterFile("testout.avi", "MPEG", float64(data.fps), data.width, data.height, true)
+func (dat *VideoData) ReadAllFrames() {
+
+	mat := gocv.NewMat()
+
+	for i := range dat.frames {
+		dat.video.Set(gocv.VideoCapturePosFrames, float64(i))
+		for !dat.video.Read(&mat) {
+		}
+
+		fmt.Println("FRAME READ")
+		newMat := gocv.NewMat()
+		dat.video.Read(&newMat)
+		gocv.CvtColor(mat, &newMat, gocv.ColorBGRAToRGBA)
+		dat.allFrames = append(dat.allFrames, &newMat)
+
+	}
+
+	dat.frames = min(dat.frames, len(dat.allFrames))
+	dat.allFramesRead = true
+
+}
+
+func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
+	writer, err := gocv.VideoWriterFile("testout.avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
 
 	if err != nil {
 		fmt.Println("Video writer creation error " + err.Error())
@@ -94,11 +130,11 @@ func writeData(data *VideoData) {
 	// newMat := gocv.NewMat()
 	// data.material.CopyTo(&newMat)
 	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGR, gl.UNSIGNED_BYTE, gl.Ptr(data.GetData()))
-	data.writer.Write(data.material)
+	videoWriter.Write(*data.material)
 }
 
 func endVideo(data *VideoData) {
-	data.writer.Close()
+	// data.writer.Close()
 	data.video.Close()
 	/*err := ffmpeg_go.Input("testout.avi").
 		Filter("transpose", ffmpeg_go.Args{"0"}).

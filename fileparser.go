@@ -9,6 +9,7 @@ type InputFile struct {
 	Width      int      `json:"width"`
 	Height     int      `json:"height"`
 	ShaderPath string   `json:"shader"`
+	RecordFPS  int32    `json:"recordfps"`
 	Textures   []string `json:"textures"`
 }
 

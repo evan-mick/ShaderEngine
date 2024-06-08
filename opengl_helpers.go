@@ -144,16 +144,16 @@ func setupVideo(file string) (uint32, *VideoData) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	gl.TexImage2D(
-		gl.TEXTURE_2D,
-		0,
-		gl.RGBA,
-		int32(video.width),
-		int32(video.height),
-		0,
-		gl.RGBA,
-		gl.UNSIGNED_BYTE,
-		gl.Ptr(video.GetData()))
+	// gl.TexImage2D(
+	// 	gl.TEXTURE_2D,
+	// 	0,
+	// 	gl.RGBA,
+	// 	int32(video.width),
+	// 	int32(video.height),
+	// 	0,
+	// 	gl.RGBA,
+	// 	gl.UNSIGNED_BYTE,
+	// 	gl.Ptr(video.GetData()))
 
 	video.texture = texture
 	return texture, video
@@ -168,6 +168,7 @@ func updateVideo(seconds float64, video *VideoData) {
 	}
 
 	frame := int(seconds*float64(video.fps)) % int(video.frames)
+
 	video.ReadFrame(frame)
 	gl.ActiveTexture(video.texture)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)

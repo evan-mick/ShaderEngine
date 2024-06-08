@@ -69,7 +69,7 @@ void main() {
 
     float dist = sqrt((left - right) * (left - right) + (up - down) * (up - down));
 
-    float outline = ((dist > 0.01f) ? 1.f : 0.f);// * ((0.5*sin(iTime)) + 1.f);
+    float outline = ((dist > 0.01f) ? 1.f : 0.f) * ((0.5*sin(iTime)) + 1.f);
     
     vec4 outlineCol = outline > 0.0f ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(1.0, 0.0, 0.0, 0.0);
 
@@ -87,7 +87,7 @@ void main() {
     
     //fragColor = outlineCol;//vec4(outline);//texture(tex3, vec2(new_x, uv.y));
 
-    fragColor = texture(tex3, vec2(new_x, uv.y));
+    fragColor = texture(tex3, vec2(uv.x, uv.y));
     
 
     if (new_x > 1.0 || new_x < 0.0 || uv.y > 1.0 || uv.y < 0.0) {
@@ -120,7 +120,7 @@ void main() {
     // fragColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 
-    // fragColor = (fract(iTime) * texture(tex1, uv)) + ((1.0 - fract(iTime)) * texture(tex0, uv));
+    fragColor = (fract(iTime) * texture(tex1, uv)) + ((1.0 - fract(iTime)) * texture(tex0, uv));
 
 
 

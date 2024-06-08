@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"gocv.io/x/gocv"
 )
 
 // Thank you sweet prince
@@ -100,6 +101,11 @@ type OpenGLProgram struct {
 	vao      uint32
 
 	videos []*VideoData
+
+	recordFPS     int32
+	timesRendered uint64
+	width         int
+	height        int
 }
 
 type GlobalGLData struct {
@@ -180,6 +186,9 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 		vao:        vao,
 		vbo:        vbo,
 		videos:     []*VideoData{},
+		recordFPS:  in.RecordFPS,
+		width:      in.Width,
+		height:     in.Height,
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
 
@@ -191,6 +200,21 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	var newTextures []uint32
 	var newVideos []*VideoData
+
+	videoWriter = setupVideoWriter(prog)
+	mat := gocv.NewMatWithSize(prog.height, prog.width, gocv.MatTypeCV16SC4)
+	writerData = &VideoData{
+		// video: video,
+		// writer:       nil,
+		fps: float64(prog.recordFPS),
+		// frames:       int(video.Get(gocv.VideoCaptureFrameCount)),
+		width:        prog.width,
+		height:       prog.height,
+		currentFrame: -1,
+		material:     &mat,
+		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
+		// currentMatIndex: 0,
+	}
 
 	gl.BindVertexArray(prog.vao)
 
@@ -215,6 +239,15 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		} else if isVideo {
 			var vidData *VideoData
 			texture, vidData = setupVideo(texturePath)
+			fmt.Printf("NULL VIDEO: %t", vidData.video == nil)
+			//*writerData.material = gocv.NewMat()
+			vidData.ReadAllFrames()
+
+			fmt.Printf("%d", len(vidData.allFrames))
+			// IT IS NOT RECORDING RIGHT
+			//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
+			//vidData.video.Read(&writerData.material)
+
 			newVideos = append(newVideos, vidData)
 		}
 		newTextures = append(newTextures, texture)
@@ -249,8 +282,15 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 		updateVideo(time, vid)
 	}
 
-	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
-	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
+	fmt.Printf("FPS: %f", 1.0/elapsed)
+
+	if program.recordFPS < 0 {
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
+	} else {
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.timesRendered)/float32(program.recordFPS))
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
+	}
 
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	//glSetShaderData(program)
@@ -258,9 +298,13 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	gl.BindVertexArray(program.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
-	/*for _, vid := range program.videos {
-		writeData(vid)
-	}*/
+	if program.recordFPS > 0 {
+		// for _, vid := range program.videos {
+		writeData(writerData)
+		// }
+	}
+
+	program.timesRendered++
 
 	glfw.PollEvents()
 	window.SwapBuffers()
