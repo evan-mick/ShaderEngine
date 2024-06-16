@@ -205,7 +205,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	var newVideos []*VideoData
 
 	videoWriter = setupVideoWriter(prog)
-	mat := gocv.NewMatWithSize(prog.height, prog.width, gocv.MatTypeCV16SC4)
+	mat := gocv.NewMatWithSize(prog.height, prog.width, gocv.MatTypeCV8SC3)
 	writerData = &VideoData{
 		// video: video,
 		// writer:       nil,
@@ -312,7 +312,7 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	gl.BindVertexArray(program.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
-	if program.recordFPS > 0 {
+	if program.recordFPS > 0 && program.timesRendered == 0 {
 		// for _, vid := range program.videos {
 		writeData(writerData)
 		// }
@@ -334,7 +334,16 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 
 func CleanUp(prog *OpenGLProgram) {
 	// May need to use for loops?
-	gl.DeleteTextures(int32(len(prog.textures)), &prog.textures[0])
+
+	for _, texture := range prog.textures {
+		//gl.DeleteTextures(int32(len(prog.textures)), &prog.textures[0])
+		gl.DeleteTextures(1, &texture)
+	}
+
+	for _, vid := range prog.videos {
+		vid.material.Close()
+		vid.video.Close()
+	}
 	gl.DeleteVertexArrays(1, &prog.vao)
 	gl.DeleteBuffers(1, &prog.vbo)
 	gl.DeleteProgram(prog.programID)

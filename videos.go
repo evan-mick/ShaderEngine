@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"image/jpeg"
+	"os"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"gocv.io/x/gocv"
@@ -144,8 +146,30 @@ func writeData(data *VideoData) {
 
 	// newMat := gocv.NewMat()
 	// data.material.CopyTo(&newMat)
-	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGR, gl.UNSIGNED_BYTE, gl.Ptr(data.GetData()))
-	videoWriter.Write(*data.material)
+	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGRA, gl.UNSIGNED_BYTE, gl.Ptr(writerData.GetData()))
+
+	//if  {
+	//fmt.Println("EMPTY BADKAJDFKLDAJKLFJAKLFJDAK")
+	//}
+	f, err := os.Create("img.jpeg")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if writerData.material.Empty() {
+
+		panic("IS EMPTY")
+	}
+
+	img, err := writerData.material.ToImage()
+	if err != nil {
+		panic(err)
+	}
+
+	jpeg.Encode(f, img, nil)
+
+	//videoWriter.Write(*data.material)
 }
 
 func endVideo(data *VideoData) {
