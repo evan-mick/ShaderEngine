@@ -106,6 +106,7 @@ type OpenGLProgram struct {
 	timesRendered uint64
 	width         int
 	height        int
+	folder        string
 }
 
 type GlobalGLData struct {
@@ -161,7 +162,9 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	vao, vbo := makeVao(quad)
 	prog := gl.CreateProgram()
 
-	fragSrc, err := getTextFromFile(in.ShaderPath)
+	prefix := in.Folder + "/"
+
+	fragSrc, err := getTextFromFile(prefix + in.ShaderPath)
 
 	if err != nil {
 		panic("Error getting file ")
@@ -222,10 +225,15 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	gl.Uniform2f(loc, float32(input.Width), float32(input.Height))
 
 	for i, texturePath := range input.Textures {
+
+		isWebcam := (texturePath == "WEBCAM")
+
+		texturePath = input.Folder + "/" + texturePath
+
 		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg")
 		isVideo := strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
 
-		if !isPhoto && !isVideo {
+		if !isPhoto && !isVideo && !isWebcam {
 			fmt.Println("ERROR, invalid file format for " + texturePath)
 			continue
 		}
@@ -236,14 +244,20 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 		if isPhoto {
 			texture = loadPictureAsTexture(texturePath)
-		} else if isVideo {
+		} else if isVideo || isWebcam {
 			var vidData *VideoData
-			texture, vidData = setupVideo(texturePath)
-			fmt.Printf("NULL VIDEO: %t", vidData.video == nil)
-			//*writerData.material = gocv.NewMat()
-			vidData.ReadAllFrames()
 
-			fmt.Printf("%d", len(vidData.allFrames))
+			//*writerData.material = gocv.NewMat()
+
+			if isVideo {
+				texture, vidData = setupVideo(texturePath)
+				fmt.Printf("NULL VIDEO: %t", vidData.video == nil)
+				vidData.ReadAllFrames()
+				fmt.Printf("%d", len(vidData.allFrames))
+			} else {
+				texture, vidData = setupVideo("WEBCAM")
+			}
+
 			// IT IS NOT RECORDING RIGHT
 			//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
 			//vidData.video.Read(&writerData.material)
@@ -282,7 +296,7 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 		updateVideo(time, vid)
 	}
 
-	fmt.Printf("FPS: %f", 1.0/elapsed)
+	// fmt.Printf("FPS: %f", 1.0/elapsed)
 
 	if program.recordFPS < 0 {
 		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))

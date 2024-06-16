@@ -167,9 +167,13 @@ func updateVideo(seconds float64, video *VideoData) {
 		return
 	}
 
-	frame := int(seconds*float64(video.fps)) % int(video.frames)
+	if !video.webcam {
+		frame := int(seconds*float64(video.fps)) % int(video.frames)
+		video.ReadFrame(frame)
+	} else {
+		video.ReadFrame(0)
+	}
 
-	video.ReadFrame(frame)
 	gl.ActiveTexture(video.texture)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
 	// fmt.Printf("video text %d", video.texture)

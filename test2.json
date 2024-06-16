@@ -1,0 +1,11 @@
+{
+    "width" : 1080,
+    "height" : 1920,
+    "folder" : "test2",
+    "shader" : "main.frag",
+    "recordfps" : -1, 
+    "textures" : [
+        "WEBCAM",
+        "cs_rose.png"
+    ]
+}

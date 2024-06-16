@@ -19,6 +19,7 @@ type VideoData struct {
 	material      *gocv.Mat
 	allFramesRead bool
 	allFrames     []*gocv.Mat
+	webcam        bool
 	// currentMatIndex int
 }
 
@@ -26,7 +27,14 @@ var videoWriter *gocv.VideoWriter
 var writerData *VideoData
 
 func CreateVideoFromFile(file string) (*VideoData, error) {
-	video, err := gocv.OpenVideoCapture(file)
+	var video *gocv.VideoCapture
+	var err error = nil
+
+	if file == "WEBCAM" {
+		video, err = gocv.OpenVideoCapture(0)
+	} else {
+		video, err = gocv.OpenVideoCapture(file)
+	}
 
 	if err != nil {
 		fmt.Println("VIDEO OPEN ERROR " + err.Error())
@@ -45,6 +53,7 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 		currentFrame: -1,
 		material:     &setMat,
 		allFrames:    make([]*gocv.Mat, 0, frames),
+		webcam:       (file == "WEBCAM"),
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
 		// currentMatIndex: 0,
 	}
@@ -68,7 +77,7 @@ func (dat *VideoData) GetData() []int8 {
 }
 
 func (dat *VideoData) ReadFrame(frame int) {
-	if frame == dat.currentFrame {
+	if !dat.webcam && frame == dat.currentFrame {
 		return
 	}
 
@@ -80,7 +89,11 @@ func (dat *VideoData) ReadFrame(frame int) {
 	read := dat.video.Read(dat.material)
 
 	if !read {
-		dat.video.Set(gocv.VideoCapturePosFrames, 0)
+
+		if !dat.webcam {
+			dat.video.Set(gocv.VideoCapturePosFrames, 0)
+		}
+
 		read := dat.video.Read(dat.material)
 		if !read {
 			fmt.Println("VIDEO READ FRAME ERROR")
@@ -101,7 +114,10 @@ func (dat *VideoData) ReadAllFrames() {
 		for !dat.video.Read(&mat) {
 		}
 
-		fmt.Println("FRAME READ")
+		percent := int(float32(i) / float32(dat.frames) * 100.0)
+		if percent%5 == 0 {
+			fmt.Printf("Video %d percent done", percent)
+		}
 		newMat := gocv.NewMat()
 		dat.video.Read(&newMat)
 		gocv.CvtColor(mat, &newMat, gocv.ColorBGRAToRGBA)
@@ -111,7 +127,6 @@ func (dat *VideoData) ReadAllFrames() {
 
 	dat.frames = min(dat.frames, len(dat.allFrames))
 	dat.allFramesRead = true
-
 }
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
