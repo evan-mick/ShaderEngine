@@ -21,8 +21,8 @@ float brightness(vec4 col) {
 void main() {
 
     
-    vec2 new_uv = vec2(mod(iTime, 2.0));
-    vec4 col = texture(tex0, new_uv);
+    //vec2 new_uv = vec2(mod(iTime, 2.0));
+    vec4 col = texture(tex0, uv);
 
     //col = vec4((1.0 - (floor(col.r * 5.0)/5)) * 0.25, 0, 0, 1.0); 
 

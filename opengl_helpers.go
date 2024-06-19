@@ -8,7 +8,16 @@ import (
 	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
+	"gocv.io/x/gocv"
 )
+
+type CVHelpers struct {
+	BackgroundSub gocv.BackgroundSubtractorKNN
+}
+
+var globalCVHelper CVHelpers = CVHelpers{
+	gocv.NewBackgroundSubtractorKNN(),
+}
 
 func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
 
@@ -172,6 +181,11 @@ func updateVideo(seconds float64, video *VideoData) {
 		video.ReadFrame(frame)
 	} else {
 		video.ReadFrame(0)
+	}
+
+	//mat := gocv.NewMat()
+	if video.removeBackground {
+		globalCVHelper.BackgroundSub.Apply(*video.material, video.material)
 	}
 
 	gl.ActiveTexture(video.texture)

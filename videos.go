@@ -12,16 +12,17 @@ import (
 type VideoData struct {
 	video *gocv.VideoCapture
 	//writer       *gocv.VideoWriter
-	texture       uint32
-	fps           float64
-	frames        int
-	currentFrame  int
-	width         int
-	height        int
-	material      *gocv.Mat
-	allFramesRead bool
-	allFrames     []*gocv.Mat
-	webcam        bool
+	texture          uint32
+	fps              float64
+	frames           int
+	currentFrame     int
+	width            int
+	height           int
+	material         *gocv.Mat
+	allFramesRead    bool
+	allFrames        []*gocv.Mat
+	webcam           bool
+	removeBackground bool
 	// currentMatIndex int
 }
 
@@ -48,14 +49,15 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 	dat := VideoData{
 		video: video,
 		// writer:       nil,
-		fps:          video.Get(gocv.VideoCaptureFPS),
-		frames:       frames,
-		width:        int(video.Get(gocv.VideoCaptureFrameWidth)),
-		height:       int(video.Get(gocv.VideoCaptureFrameHeight)),
-		currentFrame: -1,
-		material:     &setMat,
-		allFrames:    make([]*gocv.Mat, 0, frames),
-		webcam:       (file == "WEBCAM"),
+		fps:              video.Get(gocv.VideoCaptureFPS),
+		frames:           frames,
+		width:            int(video.Get(gocv.VideoCaptureFrameWidth)),
+		height:           int(video.Get(gocv.VideoCaptureFrameHeight)),
+		currentFrame:     -1,
+		material:         &setMat,
+		allFrames:        make([]*gocv.Mat, 0, frames),
+		webcam:           (file == "WEBCAM"),
+		removeBackground: true,
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
 		// currentMatIndex: 0,
 	}

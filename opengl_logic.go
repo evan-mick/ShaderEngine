@@ -299,7 +299,7 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	// fmt.Printf("FPS: %f", 1.0/elapsed)
 
 	if program.recordFPS < 0 {
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
 		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
 	} else {
 		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.timesRendered)/float32(program.recordFPS))
@@ -312,11 +312,11 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	gl.BindVertexArray(program.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
-	if program.recordFPS > 0 && program.timesRendered == 0 {
+	/*if program.recordFPS > 0 && program.timesRendered == 0 {
 		// for _, vid := range program.videos {
 		writeData(writerData)
 		// }
-	}
+	}*/
 
 	program.timesRendered++
 

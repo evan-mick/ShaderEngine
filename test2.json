@@ -5,6 +5,6 @@
     "shader" : "main.frag",
     "recordfps" : 10, 
     "textures" : [
-        "cs_rose.png"
+        "WEBCAM"
     ]
 }
