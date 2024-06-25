@@ -1,0 +1,12 @@
+{
+    "width" : 1920,
+    "height" : 1080,
+    "folder" : "test2",
+    "shader" : "main.frag",
+    "recordfps" : -1, 
+    "textures" : [
+        "cs_rose.png",
+        "img.mp4",
+        "punishment.mp4"
+    ]
+}

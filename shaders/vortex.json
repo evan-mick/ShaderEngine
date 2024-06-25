@@ -1,0 +1,8 @@
+{
+    "width" : 1080,
+    "height" : 1080,
+    "folder" : "vortex",
+    "shader" : "main.frag",
+    "recordfps" : -1, 
+    "textures" : []
+}

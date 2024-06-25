@@ -184,9 +184,14 @@ func updateVideo(seconds float64, video *VideoData) {
 	}
 
 	//mat := gocv.NewMat()
-	if video.removeBackground {
-		globalCVHelper.BackgroundSub.Apply(*video.material, video.material)
-	}
+	ptr := video.GetData()
+	//if video.removeBackground {
+	//	back := //gocv.NewBackgroundSubtractorMOG2WithParams(500, 16, false)
+	//		back.Apply(*video.material, video.material)
+
+	//globalCVHelper.BackgroundSub.Apply(*video.material, &mat)
+	//ptr = mat.DataPtrInt8()
+	//}
 
 	gl.ActiveTexture(video.texture)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
@@ -200,5 +205,5 @@ func updateVideo(seconds float64, video *VideoData) {
 		0,
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
-		gl.Ptr(video.GetData()))
+		gl.Ptr(ptr))
 }

@@ -1,0 +1,10 @@
+{
+    "width" : 1080,
+    "height" : 1920,
+    "shader" : "main.frag",
+    "folder" : "cycles",
+    "recordfps" : -1, 
+    "textures" : [
+        "WEBCAM"
+    ]
+}
