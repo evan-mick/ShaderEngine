@@ -5,6 +5,8 @@
     "folder" : "cycles",
     "recordfps" : -1, 
     "textures" : [
-        "WEBCAM"
+        "WEBCAM",
+        "gmoddance.mp4",
+        "cyclesfarm.mp4"
     ]
 }

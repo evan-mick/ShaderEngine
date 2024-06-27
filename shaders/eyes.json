@@ -1,0 +1,13 @@
+{
+    "width" : 1080,
+    "height" : 1920,
+    "shader" : "main.frag",
+    "folder" : "eyes",
+    "recordfps" : -1,
+    "textures" : [
+        "qceye.mp4",
+        "testsuo_eyes1.mp4",
+        "tf2.mp4",
+        "WEBCAM"
+    ]
+}

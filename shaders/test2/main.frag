@@ -31,7 +31,7 @@ void main() {
     //if (col.b < 0.1) {
         col = col2;//vec4(0.0);
     } else {
-        col = vec4(1.0, 0.0, 0.0, 1.0);
+        col = (vec4(1.0, 0.0, 0.0, 1.0));
     }
     //col = vec4((1.0 - (floor(col.r * 5.0)/5)) * 0.25, 0, 0, 1.0); 
     fragColor = col;//vec4(floor(bright * 4.0)/4.0, 0.0, 0.0, 1.0) * 3.0;

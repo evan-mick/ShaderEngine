@@ -16,6 +16,28 @@ uniform vec2 res;
 #define OCTAVES 8
 
 
+float edge(vec2 uv, sampler2D text) {
+    vec2 p = vec2(1,1)/res.xy;
+    vec2 p1 = vec2(1,0)/res.xy;
+    vec2 p2 = vec2(0,1)/res.xy;
+    
+    vec3 lum = vec3(0.2, 0.7, 0.1); 
+    
+    vec3 a = texture(text,uv).xyz * lum;
+    vec3 b = texture(text,uv+p1).xyz * lum;
+    vec3 bb = texture(text,uv-p1).xyz * lum;
+    vec3 c = texture(text,uv+p2).xyz * lum;
+    vec3 cc = texture(text,uv-p2).xyz * lum;
+    
+    float dx = length(bb)-length(b);
+    float dy = length(cc)-length(c);
+    
+    float edge = sqrt(dx*dx + dy*dy);
+    
+    return edge; 
+
+}
+
 vec4 hsv2rgb(vec3 hsv) {
 
     float hue = fract(hsv.x); //only use fractional part of hue, making it loop
@@ -76,9 +98,9 @@ mat2 rotate(float r) {
     );
 }
 
+const vec4 main_col = vec4(122.f/255.f, 28.f/255.f, 23.f/255.f, 1.0f);
 
-void main() {
-    vec4 main_col = vec4(122.f/255.f, 28.f/255.f, 23.f/255.f, 1.0f);;
+vec3 background() {
 
     vec2 new_uv = uv; 
 
@@ -113,5 +135,57 @@ void main() {
         new_col = vec3(1.0, 1.0, 1.0);
     }
 
-    fragColor = vec4(vec3(new_col), 1.0);
+    return new_col;
+}
+
+
+vec4 checkEdge(vec3 old_col, sampler2D tex) {
+    vec3 new_col = old_col;
+    float edge_val = edge(uv, tex) * 5.0; 
+    float sensitivity = 0.1;
+    if (edge_val > sensitivity) {
+        new_col = vec3(0.0);
+        if (edge_val < sensitivity * 1.5) {
+            new_col = vec3(1.0);
+        }
+    }
+
+    return vec4(vec3(new_col), 1.0);
+}
+
+vec4 webcamSection() {
+    
+    vec3 new_col = background();
+    return checkEdge(new_col.rgb, tex0);
+}
+
+
+
+void main() {
+
+    float modTime = mod(iTime, 24.0);
+
+    if (modTime < 8.0) {
+        fragColor =  webcamSection();
+    } else if (modTime < 16.0) {
+        vec4 col = texture(tex1, uv);
+        if (col.g > 0.7) {
+            col = vec4(background(), 1.0);
+        } else {
+            col = main_col;
+            col = checkEdge(col.rgb, tex1);
+        }
+        fragColor = col; 
+    } else if (modTime < 24.0) {
+        vec4 col = texture(tex2, uv);
+        float bright = brightness(col);
+        if (bright > 0.52) {
+            col = vec4(background(), 1.0);
+        } else {
+            col = main_col;
+            col = checkEdge(col.rgb, tex2);
+        }
+        fragColor = col; 
+   }
+    
 }

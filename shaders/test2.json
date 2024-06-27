@@ -6,7 +6,6 @@
     "recordfps" : -1, 
     "textures" : [
         "cs_rose.png",
-        "img.mp4",
         "punishment.mp4"
     ]
 }

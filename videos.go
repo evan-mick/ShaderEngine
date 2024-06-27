@@ -113,24 +113,37 @@ func (dat *VideoData) ReadAllFrames() {
 
 	mat := gocv.NewMat()
 
+	j := 0
+	fmt.Printf("Video read start\n")
 	for i := range dat.frames {
 		dat.video.Set(gocv.VideoCapturePosFrames, float64(i))
-		for !dat.video.Read(&mat) {
+		attempts := 0
+		for !dat.video.Read(&mat) && attempts < 10 {
+			attempts++
+		}
+
+		if attempts > 1000 {
+			break
 		}
 
 		percent := int(float32(i) / float32(dat.frames) * 100.0)
-		if percent%5 == 0 {
-			fmt.Printf("Video %d percent done", percent)
+		if percent%50 == 0 {
+			//fmt.Printf("Video %d percent done", percent)
 		}
+		if mat.Empty() {
+			continue
+		}
+
 		newMat := gocv.NewMat()
 		dat.video.Read(&newMat)
 		gocv.CvtColor(mat, &newMat, gocv.ColorBGRAToRGBA)
 		dat.allFrames = append(dat.allFrames, &newMat)
-
+		j++
 	}
-
-	dat.frames = min(dat.frames, len(dat.allFrames))
+	fmt.Printf("Video done reading\n")
+	dat.frames = min(j, min(dat.frames, len(dat.allFrames)))
 	dat.allFramesRead = true
+
 }
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {

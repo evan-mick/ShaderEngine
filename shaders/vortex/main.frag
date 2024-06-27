@@ -27,7 +27,7 @@ void main() {
 
     
     vec2 offset = /*MOVE_RAD */ vec2(0.25 * (sin(iTime*0.2) + 1.0) * cos(MOVE_SPEED_X * sin(iTime) + PI/2), 0.25 * (cos(iTime*0.5) + 1.0) * sin(MOVE_SPEED_Y * cos(iTime))) - 1.0;
-    vec2 mod_uv = (uv * 2.0) + offset;
+    vec2 mod_uv = (floor(uv*200.0)/200.0 * 2.0) + offset;
 
     float dist = length(mod_uv);
 
