@@ -134,6 +134,10 @@ func loadPictureAsTexture(file string) uint32 {
 	return texture
 }
 
+func goFullScreen() {
+	// glfw.WindowHint()
+}
+
 func setupVideo(file string) (uint32, *VideoData) {
 
 	video, err := CreateVideoFromFile(file)

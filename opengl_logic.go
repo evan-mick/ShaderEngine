@@ -4,7 +4,6 @@ import (
 	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
@@ -132,12 +131,12 @@ func glInit(in *InputFile) *glfw.Window {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
-	// monitor := glfw.GetPrimaryMonitor() // The primary monitor.. Later Occulus?..
+	// monitor := glfw.GetPrimaryMonitor()
 
 	// mode := monitor.GetVideoMode()
 	// width = //mode.Width
 	// height = //mode.Height
-	window, err := glfw.CreateWindow(in.Width, in.Height, "Test", nil, nil)
+	window, err := glfw.CreateWindow(in.Width, in.Height, "IN MY IGNORANCE", glfw.GetPrimaryMonitor(), nil)
 	globalDat.window = window
 
 	if err != nil {
@@ -156,8 +155,8 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
-	version := gl.GoStr(gl.GetString(gl.VERSION))
-	log.Println("OpenGL version", version)
+	//version := gl.GoStr(gl.GetString(gl.VERSION))
+	//log.Println("OpenGL version", version)
 
 	vao, vbo := makeVao(quad)
 	prog := gl.CreateProgram()
@@ -251,9 +250,9 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 			if isVideo {
 				texture, vidData = setupVideo(texturePath)
-				fmt.Printf("NULL VIDEO: %t", vidData.video == nil)
+				//fmt.Printf("NULL VIDEO: %t", vidData.video == nil)
 				vidData.ReadAllFrames()
-				fmt.Printf("%d", len(vidData.allFrames))
+				//fmt.Printf("%d", len(vidData.allFrames))
 			} else {
 				texture, vidData = setupVideo("WEBCAM")
 			}
@@ -274,7 +273,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		str := fmt.Sprintf("tex%d", i)
 		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
 		gl.Uniform1i(textureUniform, int32(i))
-		fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
+		//fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
 		// }
 
 	}

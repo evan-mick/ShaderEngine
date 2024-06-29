@@ -30,7 +30,7 @@ func main() {
 	}
 
 	in, err := ParseJsonToInputFile(file)
-	fmt.Println(in)
+	//fmt.Println(in)
 	if err != nil {
 		fmt.Println("ERROR: issue parsing input file " + err.Error())
 		return
@@ -69,6 +69,7 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 		fmt.Println("RELOADED!")
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN
+
 	} else if window.GetKey(glfw.KeyEscape) == glfw.Press {
 		window.SetShouldClose(true)
 	} else if window.GetKey(glfw.KeyLeftShift) == glfw.Press {

@@ -1,6 +1,7 @@
 {
-    "width" : 1080,
-    "height" : 1920,
+    "width" : 1920,
+    "height" : 1080,
+    "fullscreen" : true,
     "shader" : "main.frag",
     "folder" : "cycles",
     "recordfps" : -1, 

@@ -5,6 +5,7 @@ import (
 	"image/jpeg"
 	"os"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/go-gl/gl/v2.1/gl"
 	"gocv.io/x/gocv"
 )
@@ -23,6 +24,7 @@ type VideoData struct {
 	allFrames        []*gocv.Mat
 	webcam           bool
 	removeBackground bool
+	filename         string
 	// currentMatIndex int
 }
 
@@ -58,6 +60,7 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 		allFrames:        make([]*gocv.Mat, 0, frames),
 		webcam:           (file == "WEBCAM"),
 		removeBackground: true,
+		filename:         file,
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
 		// currentMatIndex: 0,
 	}
@@ -114,7 +117,8 @@ func (dat *VideoData) ReadAllFrames() {
 	mat := gocv.NewMat()
 
 	j := 0
-	fmt.Printf("Video read start\n")
+	fmt.Printf("Reading %s\n", dat.filename)
+	bar := pb.StartNew(dat.frames)
 	for i := range dat.frames {
 		dat.video.Set(gocv.VideoCapturePosFrames, float64(i))
 		attempts := 0
@@ -126,10 +130,11 @@ func (dat *VideoData) ReadAllFrames() {
 			break
 		}
 
-		percent := int(float32(i) / float32(dat.frames) * 100.0)
-		if percent%50 == 0 {
-			//fmt.Printf("Video %d percent done", percent)
-		}
+		//percent := int(float32(i) / float32(dat.frames) * 100.0)
+		//if percent%50 == 0 {
+		//fmt.Printf("Video %d percent done", percent)
+		//}
+		bar.Increment()
 		if mat.Empty() {
 			continue
 		}
@@ -140,7 +145,8 @@ func (dat *VideoData) ReadAllFrames() {
 		dat.allFrames = append(dat.allFrames, &newMat)
 		j++
 	}
-	fmt.Printf("Video done reading\n")
+	bar.Finish()
+	fmt.Printf("Video read\n")
 	dat.frames = min(j, min(dat.frames, len(dat.allFrames)))
 	dat.allFramesRead = true
 
