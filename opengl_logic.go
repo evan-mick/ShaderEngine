@@ -121,30 +121,54 @@ var globalDat GlobalGLData
 // var deleteShaders [uint32]
 
 func glInit(in *InputFile) *glfw.Window {
+	return glInitFull(in, false)
+}
 
+func glInitFull(in *InputFile, fullscreen bool) *glfw.Window {
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
+	return glSetupNewWindow(in.Width, in.Height, fullscreen)
+}
+
+func glSetupNewWindow(width int, height int, fullscreen bool) *glfw.Window {
+
+	if globalDat.window != nil {
+		globalDat.window.SetShouldClose(true)
+	}
+
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
-	// monitor := glfw.GetPrimaryMonitor()
+	//
 
 	// mode := monitor.GetVideoMode()
 	// width = //mode.Width
 	// height = //mode.Height
-	window, err := glfw.CreateWindow(in.Width, in.Height, "IN MY IGNORANCE", glfw.GetPrimaryMonitor(), nil)
+	monitor := glfw.GetPrimaryMonitor()
+	if !fullscreen {
+		monitor = nil
+	}
+
+	window, err := glfw.CreateWindow(width, height, "IN MY IGNORANCE", monitor, nil)
+
+	/*if fullscreen {
+		monitor := glfw.GetPrimaryMonitor()
+		glfw.GetCurrentContext().SetMonitor(monitor, 0, 0, width, height, 60)
+	}
+	*/
 	globalDat.window = window
 
 	if err != nil {
 		panic(err)
 	}
+	globalDat.fullscreen = fullscreen
 	window.MakeContextCurrent()
-	return window
 
+	return window
 }
 
 func glTerminate() {

@@ -110,6 +110,11 @@ vec4 bridge() {
 
     col = vec4(0.6, 0.5, 1.0, 1.0) * floor(bright*5.0)/5.0 * 1.5;
 
+    if (uv.y < 0.7 + 0.1*sin(cos((-iTime + uv.x)) * 5.0)*random(floor(vec2(uv.x, uv.y)*100.0)/100.0 - iTime) && bright > 0.6) {
+        float noise = fbm((uv+20.0 + iTime/3.0)*10);
+        col = vec4(0.0, 0.2, noise, 1.0);
+    }
+
     return col; 
 }
 
@@ -126,36 +131,59 @@ vec4 img() {
     return col; 
 }
 
-vec4 highschool() {
-    vec4 col = texture(tex1, uv);
+float edge(vec2 uv, sampler2D text) {
+    vec2 p = vec2(1,1)/res.xy;
+    vec2 p1 = vec2(1,0)/res.xy;
+    // was 0, 4 here?
+    vec2 p2 = vec2(0,1)/res.xy;
+    
+    vec3 lum = vec3(0.2, 0.7, 0.1); 
+    
+    vec3 a = texture(text,uv).xyz * lum;
+    vec3 b = texture(text,uv+p1).xyz * lum;
+    vec3 bb = texture(text,uv-p1).xyz * lum;
+    vec3 c = texture(text,uv+p2).xyz * lum;
+    vec3 cc = texture(text,uv-p2).xyz * lum;
+    
+    float dx = length(bb)-length(b);
+    float dy = length(cc)-length(c);
+    
+    float edge = sqrt(dx*dx + dy*dy);
+    
+    return edge; 
 
-    if (col.r < 0.1 && col.g < 0.1 && col.b < 0.1) {
+}
+
+vec4 highschool() {
+    vec4 col = texture(tex2, uv);
+    float edgepart = edge(uv, tex2);
+
+    if (col.g > 0.6 && col.r < 0.7) {
         float noise = fbm((uv+20.0 + iTime/3.0)*10);
         col = vec4(0.0, 0.2, noise, 1.0);
     } else {
-        col = vec4(1.0);
+        col = vec4(1.0) - (edgepart > 0.008 ? 1.0 : 0.0);
     }
     return col; 
 }
 
 
 void main() {
-    fragColor = album();
+    //fragColor = album();
 
 
-    float modTime = mod(iTime, 20.0);
+    float modTime = mod(iTime, 36.0);
 
     // fragColor = webcamSection();
-
+    fragColor = album();
     if (modTime < 10.0) {
         fragColor = album();
     } else if (modTime < 16.0) {
         fragColor = img();
-   } else if (modtime < 24.0) {
+   } else if (modTime < 24.0) {
         fragColor = bridge();
     } else if (iTime > 10.0 && modTime < 28.0) {
         fragColor = highschool();
    }
-
-   
+//    fragColor = img();
 }

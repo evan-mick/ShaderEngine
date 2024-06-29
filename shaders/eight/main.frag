@@ -159,6 +159,8 @@ vec4 Testsuo() {
 
 
 void main() {
+
+    float modTime = mod(iTime, 36.0);
     
     if (modTime < 18.0) {
         fragColor = Testsuo();

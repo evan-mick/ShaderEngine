@@ -66,7 +66,7 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 		log := strings.Repeat("\x00", int(logLength+1))
 
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
-		return 0, fmt.Errorf("failed to compile %v: %v", source, log)
+		return 0, fmt.Errorf("failed to compile: %v", log)
 	}
 	return shader, nil
 
@@ -134,9 +134,15 @@ func loadPictureAsTexture(file string) uint32 {
 	return texture
 }
 
-func goFullScreen() {
-	// glfw.WindowHint()
-}
+/*
+func goFullScreen(width int, height int, fullscreen bool) {
+	if fullscreen {
+		monitor := glfw.GetPrimaryMonitor()
+		glfw.GetCurrentContext().SetMonitor(monitor, 0, 0, width, height, 60)
+	} else {
+		glfw.GetCurrentContext().SetMonitor(nil, 0, 0, width, height, 60)
+	}
+}*/
 
 func setupVideo(file string) (uint32, *VideoData) {
 

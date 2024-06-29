@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
@@ -24,9 +25,17 @@ func main() {
 	}*/
 
 	file := "main.json"
+	var fullscreen bool = false
 
 	if len(os.Args) > 1 {
 		file = os.Args[1]
+		if len(os.Args) > 2 {
+			var err error
+			fullscreen, err = strconv.ParseBool(os.Args[2])
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		}
 	}
 
 	in, err := ParseJsonToInputFile(file)
@@ -38,7 +47,7 @@ func main() {
 
 	runtime.LockOSThread()
 
-	window := glInit(&in)
+	window := glInitFull(&in, fullscreen)
 	defer glTerminate()
 
 	program := initGLProgram(&in)
@@ -69,6 +78,8 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 		fmt.Println("RELOADED!")
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN
+		//goFullScreen(in.Width, in.Height, !globalDat.fullscreen)
+		//globalDat.fullscreen = !globalDat.fullscreen
 
 	} else if window.GetKey(glfw.KeyEscape) == glfw.Press {
 		window.SetShouldClose(true)

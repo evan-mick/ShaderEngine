@@ -139,6 +139,39 @@ vec3 background() {
 }
 
 
+#define MOVE_RAD 0.5
+#define MOVE_SPEED_X 0.5
+#define MOVE_SPEED_Y 0.25
+#define PI 3.1415
+#define HALF_BANDS 10.0
+
+vec4 vortex() {
+
+    
+    vec2 offset = /*MOVE_RAD */ vec2(0.25 * (sin(iTime*0.2) + 1.0) * cos(MOVE_SPEED_X * sin(iTime) + PI/2), 0.25 * (cos(iTime*0.5) + 1.0) * sin(MOVE_SPEED_Y * cos(iTime))) - 1.0;
+    vec2 mod_uv = (floor(uv*200.0)/200.0 * 2.0) + offset;
+
+    float dist = length(mod_uv);
+
+    float dist1 = .1f;
+    float dist2 = .2f;
+
+    float cur_step = 0.0f;
+
+    cur_step = step(dist1, dist);
+
+    cur_step = cur_step > 0.01f ? step(dist2, dist) : 1.0 - cur_step;
+
+    float angle = atan(mod_uv.y, mod_uv.x);
+
+    cur_step = mod(angle + cos(iTime + uv.x*uv.x*2.0), PI/HALF_BANDS) * 4.0 * (sin(iTime) + 1.5);//smoothstep(0.5, f0.6, angle);
+
+
+    vec4 col = vec4(mix(main_col, vec4(1.0), dist*dist)); //vec4(0.502 * (1.0-dist), 0.0, dist, 1.0) * 5.0;
+    
+    return floor(vec4(vec3(cur_step), 1.0) * col * 10.0)/10.0;
+}
+
 vec4 checkEdge(vec3 old_col, sampler2D tex) {
     vec3 new_col = old_col;
     float edge_val = edge(uv, tex) * 5.0; 
@@ -163,11 +196,13 @@ vec4 webcamSection() {
 
 void main() {
 
-    float modTime = mod(iTime, 24.0);
+    float modTime = mod(iTime, 36.0);
 
     if (modTime < 8.0) {
-        fragColor =  webcamSection();
+        fragColor = vortex();
     } else if (modTime < 16.0) {
+        fragColor =  webcamSection();
+    } else if (modTime < 24.0) {
         vec4 col = texture(tex1, uv);
         if (col.g > 0.7) {
             col = vec4(background(), 1.0);
@@ -176,7 +211,7 @@ void main() {
             col = checkEdge(col.rgb, tex1);
         }
         fragColor = col; 
-    } else if (modTime < 24.0) {
+    } else if (modTime < 36.0) {
         vec4 col = texture(tex2, uv);
         float bright = brightness(col);
         if (bright > 0.52) {
@@ -187,5 +222,4 @@ void main() {
         }
         fragColor = col; 
    }
-    
 }
