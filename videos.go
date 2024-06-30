@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/jpeg"
 	"os"
 
 	"github.com/cheggaaa/pb/v3"
@@ -153,7 +152,7 @@ func (dat *VideoData) ReadAllFrames() {
 }
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
-	writer, err := gocv.VideoWriterFile("testout.avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
+	writer, err := gocv.VideoWriterFile(data.fileName+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
 
 	if err != nil {
 		fmt.Println("Video writer creation error " + err.Error())
@@ -167,10 +166,10 @@ func writeData(data *VideoData) {
 
 	// newMat := gocv.NewMat()
 	// data.material.CopyTo(&newMat)
-	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGRA, gl.UNSIGNED_BYTE, gl.Ptr(writerData.GetData()))
-
+	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGR, gl.UNSIGNED_BYTE, gl.Ptr(writerData.GetData()))
+	// writerData.Write(data.material)
 	//if  {
-	//fmt.Println("EMPTY BADKAJDFKLDAJKLFJAKLFJDAK")
+	fmt.Println("EMPTY BADKAJDFKLDAJKLFJAKLFJDAK")
 	//}
 	f, err := os.Create("img.jpeg")
 	if err != nil {
@@ -178,19 +177,31 @@ func writeData(data *VideoData) {
 	}
 	defer f.Close()
 
+	if writerData.material == nil {
+		fmt.Println("NULLL NOT AJMA MATERIAL")
+		fmt.Println(writerData)
+	}
+
 	if writerData.material.Empty() {
 
 		panic("IS EMPTY")
 	}
 
-	img, err := writerData.material.ToImage()
+	if !videoWriter.IsOpened() {
+		fmt.Println("WRITER NOT OPEN")
+	}
+	//img, err := writerData.material.ToImage()
 	if err != nil {
 		panic(err)
 	}
 
-	jpeg.Encode(f, img, nil)
+	//jpeg.Encode(f, img, nil)
 
-	//videoWriter.Write(*data.material)
+	err = videoWriter.Write(*data.material)
+	if err != nil {
+		fmt.Print(err)
+	}
+
 }
 
 func endVideo(data *VideoData) {

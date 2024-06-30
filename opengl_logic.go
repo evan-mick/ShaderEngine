@@ -204,17 +204,18 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	//gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 	retProg := OpenGLProgram{
-		programID:  prog,
-		fileName:   in.ShaderPath,
-		vertexID:   vertex,
-		fragmentID: frag,
-		textures:   []uint32{},
-		vao:        vao,
-		vbo:        vbo,
-		videos:     []*VideoData{},
-		recordFPS:  in.RecordFPS,
-		width:      in.Width,
-		height:     in.Height,
+		programID:     prog,
+		fileName:      in.ShaderPath,
+		vertexID:      vertex,
+		fragmentID:    frag,
+		textures:      []uint32{},
+		vao:           vao,
+		vbo:           vbo,
+		videos:        []*VideoData{},
+		recordFPS:     in.RecordFPS,
+		width:         in.Width,
+		height:        in.Height,
+		timesRendered: 0,
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
 
@@ -306,7 +307,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	prog.videos = newVideos
 }
 
-func glDraw(window *glfw.Window, program OpenGLProgram) {
+func glDraw(window *glfw.Window, program *OpenGLProgram) {
 
 	gl.UseProgram(program.programID)
 
@@ -325,7 +326,10 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
 		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
 	} else {
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.timesRendered)/float32(program.recordFPS))
+
+		time := float32(program.timesRendered) / float32(program.recordFPS)
+		fmt.Printf("time %f %d %d\n", time, program.recordFPS, program.timesRendered)
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), time)
 		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
 	}
 
@@ -335,11 +339,14 @@ func glDraw(window *glfw.Window, program OpenGLProgram) {
 	gl.BindVertexArray(program.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
-	/*if program.recordFPS > 0 && program.timesRendered == 0 {
+	if program.recordFPS > 0 && program.timesRendered == 0 {
 		// for _, vid := range program.videos {
+		if writerData == nil {
+			fmt.Println("NIL WRITER DATA!!!")
+		}
 		writeData(writerData)
 		// }
-	}*/
+	}
 
 	program.timesRendered++
 

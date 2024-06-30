@@ -24,7 +24,8 @@ func main() {
 		window.WaitKey(1)
 	}*/
 
-	file := "main.json"
+	//file := "main.json"
+	file := "shaders/vortex.json"
 	var fullscreen bool = false
 
 	if len(os.Args) > 1 {
@@ -56,7 +57,7 @@ func main() {
 	for !window.ShouldClose() {
 
 		if !paused {
-			glDraw(window, program)
+			glDraw(window, &program)
 		}
 		checkInputs(window, &program, &in)
 	}
