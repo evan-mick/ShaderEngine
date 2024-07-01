@@ -318,6 +318,7 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 	// updateVideo(time, video)
 	for _, vid := range program.videos {
 		updateVideo(time, vid)
+		fmt.Println(vid.material.Type().String())
 	}
 
 	// fmt.Printf("FPS: %f", 1.0/elapsed)
@@ -340,11 +341,14 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
 	if program.recordFPS > 0 && program.timesRendered == 0 {
+
 		// for _, vid := range program.videos {
 		if writerData == nil {
 			fmt.Println("NIL WRITER DATA!!!")
 		}
-		writeData(writerData)
+		writeData(program.width, program.height)
+		//writeData(program.videos[0])
+		//writeData(writerData)
 		// }
 	}
 

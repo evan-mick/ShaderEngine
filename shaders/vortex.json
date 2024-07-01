@@ -4,5 +4,5 @@
     "folder" : "shaders/vortex",
     "shader" : "main.frag",
     "recordfps" : 20, 
-    "textures" : []
+    "textures" : ["eyes1.mp4"]
 }

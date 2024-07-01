@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/go-gl/gl/v2.1/gl"
@@ -162,16 +161,31 @@ func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 	return writer
 }
 
-func writeData(data *VideoData) {
-
+// TODO: Change this so its setup based on the program
+// not even fully sure why it is video data rn
+func writeData(width int, height int) {
+	//data *VideoData
 	// newMat := gocv.NewMat()
+
+	mat := gocv.NewMatWithSize(height, width, gocv.MatTypeCV8SC4) //gocv.NewMatFromBytes(data.height, data.width, gocv.MatTypeCV8SC3, nil)
+	/*if err != nil {
+		fmt.Println("MAT FAILURE " + err.Error())
+	}*/
 	// data.material.CopyTo(&newMat)
-	gl.ReadPixels(0, 0, int32(data.width), int32(data.height), gl.BGR, gl.UNSIGNED_BYTE, gl.Ptr(writerData.GetData()))
+	bytes := mat.ToBytes()
+	gl.ReadPixels(0, 0, int32(width), int32(height), gl.BGRA, gl.UNSIGNED_BYTE, gl.Ptr(bytes))
 	// writerData.Write(data.material)
-	//if  {
-	fmt.Println("EMPTY BADKAJDFKLDAJKLFJAKLFJDAK")
+	/*buf := new(bytes.Buffer)
+	var num uint32 = uint32(data.width) * uint32(data.height)
+	err := binary.Write(buf, binary.LittleEndian, num)
+	if err != nil {
+		fmt.Println("WRITE FAILURE " + err.Error())
+	}*/
+
+	///if  {
+	//fmt.Println("EMPTY BADKAJDFKLDAJKLFJAKLFJDAK")
 	//}
-	f, err := os.Create("img.jpeg")
+	/*f, err := os.Create("img.jpeg")
 	if err != nil {
 		panic(err)
 	}
@@ -179,7 +193,7 @@ func writeData(data *VideoData) {
 
 	if writerData.material == nil {
 		fmt.Println("NULLL NOT AJMA MATERIAL")
-		fmt.Println(writerData)
+		fmt.Println(data)
 	}
 
 	if writerData.material.Empty() {
@@ -193,11 +207,16 @@ func writeData(data *VideoData) {
 	//img, err := writerData.material.ToImage()
 	if err != nil {
 		panic(err)
-	}
+	}*/
 
 	//jpeg.Encode(f, img, nil)
 
-	err = videoWriter.Write(*data.material)
+	mat, err := gocv.NewMatFromBytes(height, width, gocv.MatTypeCV8SC4, bytes)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	err = videoWriter.Write(mat) //videoWriter.Write(*data.material)
 	if err != nil {
 		fmt.Print(err)
 	}
