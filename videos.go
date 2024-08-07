@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/go-gl/gl/v2.1/gl"
@@ -28,6 +29,9 @@ type VideoData struct {
 
 var videoWriter *gocv.VideoWriter
 var writerData *VideoData
+
+// var formatCtx *gmf.FmtCtx //:= gmf.NewCtx()
+// var outputCtx *gmf.FmtCtx
 
 func CreateVideoFromFile(file string) (*VideoData, error) {
 	var video *gocv.VideoCapture
@@ -163,69 +167,76 @@ func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 
 // TODO: Change this so its setup based on the program
 // not even fully sure why it is video data rn
-func writeData(width int, height int) {
-	//data *VideoData
-	// newMat := gocv.NewMat()
+func writeData(width int32, height int32) {
 
-	mat := gocv.NewMatWithSize(height, width, gocv.MatTypeCV8SC4) //gocv.NewMatFromBytes(data.height, data.width, gocv.MatTypeCV8SC3, nil)
-	/*if err != nil {
-		fmt.Println("MAT FAILURE " + err.Error())
-	}*/
-	// data.material.CopyTo(&newMat)
-	bytes := mat.ToBytes()
-	gl.ReadPixels(0, 0, int32(width), int32(height), gl.BGRA, gl.UNSIGNED_BYTE, gl.Ptr(bytes))
-	// writerData.Write(data.material)
-	/*buf := new(bytes.Buffer)
-	var num uint32 = uint32(data.width) * uint32(data.height)
-	err := binary.Write(buf, binary.LittleEndian, num)
+	// pixels := make([]uint8, width*height*3)
+
+	// Read the pixels from the framebuffer
+	// gl.ReadPixels(0, 0, int32(width), int32(height), gl.RGB, gl.UNSIGNED_BYTE, gl.Ptr(&pixels[0]))
+
+	img := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
+	gl.ReadPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(img.Pix))
+	FlipVertically(img)
+
+	mat, _ := gocv.ImageToMatRGB(img)
+	videoWriter.Write(mat)
+	// draw.FlipVertically(img)
+	// return img
+	// frame := gmf.NewFrameFromBytes(frameData, 1920, 1080)
+	// // codecCtx.Encode(frame)
+	// outputCtx.WriteFrame(frame)
+	// Create an OpenCV Mat with the pixel data
+	/*mat, err := openGLToCVMat(pixels, width, height)
 	if err != nil {
-		fmt.Println("WRITE FAILURE " + err.Error())
-	}*/
-
-	///if  {
-	//fmt.Println("EMPTY BADKAJDFKLDAJKLFJAKLFJDAK")
-	//}
-	/*f, err := os.Create("img.jpeg")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	if writerData.material == nil {
-		fmt.Println("NULLL NOT AJMA MATERIAL")
-		fmt.Println(data)
-	}
-
-	if writerData.material.Empty() {
-
-		panic("IS EMPTY")
-	}
-
-	if !videoWriter.IsOpened() {
-		fmt.Println("WRITER NOT OPEN")
-	}
-	//img, err := writerData.material.ToImage()
-	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
+		return
 	}*/
 
-	//jpeg.Encode(f, img, nil)
+	// Save the Mat to an image file
+	// gocv.IMWrite("output.png", mat)
+	//videoWriter.Write(mat)
 
-	mat, err := gocv.NewMatFromBytes(height, width, gocv.MatTypeCV8SC4, bytes)
-	if err != nil {
-		fmt.Print(err)
+}
+
+// Flips an RGBA image vertically
+func FlipVertically(img *image.RGBA) {
+	bounds := img.Bounds()
+	for y := 0; y < bounds.Dy()/2; y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			i1 := img.PixOffset(x, y)
+			i2 := img.PixOffset(x, bounds.Dy()-y-1)
+			for k := 0; k < 4; k++ {
+				img.Pix[i1+k], img.Pix[i2+k] = img.Pix[i2+k], img.Pix[i1+k]
+			}
+		}
+	}
+}
+
+func openGLToCVMat(pixels []byte, width, height int) (gocv.Mat, error) {
+	// Create an empty OpenCV Mat with the correct dimensions
+	mat := gocv.NewMatWithSize(height, width, gocv.MatTypeCV8UC3)
+
+	// Use pointers to directly set the pixel data in the Mat
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			idx := (y*width + x) * 3
+			r, g, b := pixels[idx], pixels[idx+1], pixels[idx+2]
+
+			// OpenCV uses BGR format
+			mat.SetUCharAt(y, x*3, b)
+			mat.SetUCharAt(y, x*3+1, g)
+			mat.SetUCharAt(y, x*3+2, r)
+		}
 	}
 
-	err = videoWriter.Write(mat) //videoWriter.Write(*data.material)
-	if err != nil {
-		fmt.Print(err)
-	}
-
+	return mat, nil
 }
 
 func endVideo(data *VideoData) {
 	// data.writer.Close()
-	data.video.Close()
+	videoWriter.Close()
+	// outputCtx.CloseOutputAndRelease()
+	// data.video.Close()
 	/*err := ffmpeg_go.Input("testout.avi").
 		Filter("transpose", ffmpeg_go.Args{"0"}).
 		Filter("transpose", ffmpeg_go.Args{"2"}).

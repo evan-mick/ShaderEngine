@@ -3,6 +3,6 @@
     "height" : 1080,
     "folder" : "shaders/vortex",
     "shader" : "main.frag",
-    "recordfps" : 20, 
-    "textures" : ["eyes1.mp4"]
+    "recordfps" : -1, 
+    "textures" : []
 }

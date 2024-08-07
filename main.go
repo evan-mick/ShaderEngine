@@ -56,9 +56,7 @@ func main() {
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
 
-		if !paused {
-			glDraw(window, &program)
-		}
+		glDraw(window, &program)
 		checkInputs(window, &program, &in)
 	}
 
@@ -73,10 +71,12 @@ func main() {
 }
 
 func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
+
 	if window.GetKey(glfw.KeyR) == glfw.Press {
 		CleanUp(program)
 		*program = initGLProgram(in)
 		fmt.Println("RELOADED!")
+		lastKey = window.GetKey(glfw.KeyR)
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN
 		//goFullScreen(in.Width, in.Height, !globalDat.fullscreen)
@@ -84,13 +84,15 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 
 	} else if window.GetKey(glfw.KeyEscape) == glfw.Press {
 		window.SetShouldClose(true)
-	} else if window.GetKey(glfw.KeyLeftShift) == glfw.Press {
-		if window.GetKey(glfw.KeyLeftShift) != lastKey {
+		// lastKey = window.GetKey(glfw.KeyP)
+	} else if window.GetKey(glfw.KeyP) == glfw.Press {
+		if window.GetKey(glfw.KeyP) != lastKey {
 			fmt.Println("PAUSED")
 			paused = !paused
+			lastKey = window.GetKey(glfw.KeyP)
 		}
+	} else {
+		lastKey = 0
 	}
-
-	lastKey = window.GetKey(glfw.KeyLeftShift)
 
 }

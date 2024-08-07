@@ -4,7 +4,7 @@
     "shader" : "main.frag",
     "folder" : "eyes",
     "fullscreen" : true,
-    "recordfps" : -1,
+    "recordfps" : 20,
     "textures" : [
         "qceye.mp4",
         "testsuo_eyes1.mp4",

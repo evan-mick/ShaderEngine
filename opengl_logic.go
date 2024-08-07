@@ -200,6 +200,18 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 
 	gl.UseProgram(prog)
 
+	// formatCtx = gmf.NewCtx()
+	// codec, err := gmf.FindEncoder(gmf.AV_CODEC_ID_MPEG4)
+	// videoEncCtx := gmf.NewCodecCtx(codec)
+
+	// videoEncCtx.
+	// 	SetBitRate(1e6).
+	// 	SetWidth(in.Width).
+	// 	SetHeight(in.Height).
+	// 	SetPixFmt(gmf.AV_PIX_FMT_YUV420P).
+	// 	SetMbDecision(gmf.FF_MB_DECISION_RD)
+
+	// outputCtx, err = gmf.NewOutputCtx("outputTESTLL.mp4")
 	//gl.Enable(gl.BLEND)
 	//gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
@@ -311,51 +323,48 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 
 	gl.UseProgram(program.programID)
 
-	time := glfw.GetTime()
-	elapsed := time - previousTime
-	previousTime = time
+	if !paused {
+		time := glfw.GetTime()
+		elapsed := time - previousTime
+		previousTime = time
 
-	// updateVideo(time, video)
-	for _, vid := range program.videos {
-		updateVideo(time, vid)
-		fmt.Println(vid.material.Type().String())
-	}
-
-	// fmt.Printf("FPS: %f", 1.0/elapsed)
-
-	if program.recordFPS < 0 {
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
-	} else {
-
-		time := float32(program.timesRendered) / float32(program.recordFPS)
-		fmt.Printf("time %f %d %d\n", time, program.recordFPS, program.timesRendered)
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), time)
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
-	}
-
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	//glSetShaderData(program)
-
-	gl.BindVertexArray(program.vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
-
-	if program.recordFPS > 0 && program.timesRendered == 0 {
-
-		// for _, vid := range program.videos {
-		if writerData == nil {
-			fmt.Println("NIL WRITER DATA!!!")
+		// updateVideo(time, video)
+		for _, vid := range program.videos {
+			updateVideo(time, vid)
+			fmt.Println(vid.material.Type().String())
 		}
-		writeData(program.width, program.height)
-		//writeData(program.videos[0])
-		//writeData(writerData)
-		// }
-	}
 
-	program.timesRendered++
+		// fmt.Printf("FPS: %f", 1.0/elapsed)
+
+		if program.recordFPS < 0 {
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
+		} else {
+
+			time := float32(program.timesRendered) / float32(program.recordFPS)
+			fmt.Printf("time %f %d %d\n", time, program.recordFPS, program.timesRendered)
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), time)
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
+		}
+
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		//glSetShaderData(program)
+
+		gl.BindVertexArray(program.vao)
+		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
+
+		if program.recordFPS > 0 {
+			width, height := window.GetSize()
+			fmt.Println(window.GetSize())
+			writeData(int32(width), int32(height))
+		}
+
+		program.timesRendered++
+		window.SwapBuffers()
+	}
 
 	glfw.PollEvents()
-	window.SwapBuffers()
+
 }
 
 /*func glSetShaderData(dat uint32) {
