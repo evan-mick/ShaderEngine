@@ -167,19 +167,25 @@ func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 
 // TODO: Change this so its setup based on the program
 // not even fully sure why it is video data rn
-func writeData(width int32, height int32) {
+// f stands for "framebuffer," o stands for "output"
+func writeData(fWidth int32, fHeight int32, oWidth int32, oHeight int32) {
 
 	// pixels := make([]uint8, width*height*3)
 
 	// Read the pixels from the framebuffer
 	// gl.ReadPixels(0, 0, int32(width), int32(height), gl.RGB, gl.UNSIGNED_BYTE, gl.Ptr(&pixels[0]))
 
-	img := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
-	gl.ReadPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(img.Pix))
+	img := image.NewRGBA(image.Rect(0, 0, int(fWidth), int(fHeight)))
+	gl.ReadPixels(0, 0, fWidth, fHeight, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(img.Pix))
 	FlipVertically(img)
 
 	mat, _ := gocv.ImageToMatRGB(img)
-	videoWriter.Write(mat)
+	resizedMat := gocv.NewMat()
+	gocv.Resize(mat, &resizedMat, image.Point{int(oWidth), int(oHeight)}, 0, 0, gocv.InterpolationLinear)
+	videoWriter.Write(resizedMat)
+
+	mat.Close()
+	resizedMat.Close()
 	// draw.FlipVertically(img)
 	// return img
 	// frame := gmf.NewFrameFromBytes(frameData, 1920, 1080)
