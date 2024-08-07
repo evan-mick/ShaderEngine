@@ -354,8 +354,8 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
 		if program.recordFPS > 0 {
-			width, height := window.GetSize()
-			fmt.Println(window.GetSize())
+			width, height := window.GetFramebufferSize() // was window.getsize()
+			fmt.Println(window.GetFramebufferSize())
 			writeData(int32(width), int32(height))
 		}
 

@@ -3,9 +3,9 @@
     "height" : 1080,
     "folder" : "test2",
     "shader" : "main.frag",
-    "recordfps" : -1, 
+    "recordfps" : 20, 
     "textures" : [
         "cs_rose.png",
-        "punishment.mp4"
+        "punishment.mkv"
     ]
 }

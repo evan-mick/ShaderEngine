@@ -51,6 +51,8 @@ func main() {
 	window := glInitFull(&in, fullscreen)
 	defer glTerminate()
 
+	in.Width, in.Height = window.GetFramebufferSize()
+
 	program := initGLProgram(&in)
 
 	// vao := makeVao(quad)
