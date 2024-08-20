@@ -102,6 +102,7 @@ type OpenGLProgram struct {
 	videos []*VideoData
 
 	recordFPS     int32
+	recordSeconds int64
 	timesRendered uint64
 	width         int
 	height        int
@@ -111,6 +112,7 @@ type OpenGLProgram struct {
 type GlobalGLData struct {
 	fullscreen bool
 	window     *glfw.Window
+	renderFBO  uint32
 }
 
 var globalDat GlobalGLData
@@ -128,6 +130,7 @@ func glInitFull(in *InputFile, fullscreen bool) *glfw.Window {
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
+
 	return glSetupNewWindow(in.Width, in.Height, fullscreen)
 }
 
@@ -200,6 +203,18 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 
 	gl.UseProgram(prog)
 
+	if in.RecordFPS > 0 {
+		var fbo uint32 = 0
+		gl.GenFramebuffers(1, &fbo)
+		gl.BindFramebuffer(gl.FRAMEBUFFER, fbo)
+		globalDat.renderFBO = fbo
+
+		var texture uint32 = 0
+		gl.GenTextures(1, &texture)
+		gl.BindTexture(gl.TEXTURE_2D, texture)
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(in.Width), int32(in.Height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+		gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
+	}
 	// formatCtx = gmf.NewCtx()
 	// codec, err := gmf.FindEncoder(gmf.AV_CODEC_ID_MPEG4)
 	// videoEncCtx := gmf.NewCodecCtx(codec)
@@ -216,15 +231,16 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	//gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 	retProg := OpenGLProgram{
-		programID:     prog,
-		fileName:      in.ShaderPath,
-		vertexID:      vertex,
-		fragmentID:    frag,
-		textures:      []uint32{},
-		vao:           vao,
-		vbo:           vbo,
-		videos:        []*VideoData{},
-		recordFPS:     in.RecordFPS,
+		programID:  prog,
+		fileName:   in.ShaderPath,
+		vertexID:   vertex,
+		fragmentID: frag,
+		textures:   []uint32{},
+		vao:        vao,
+		vbo:        vbo,
+		videos:     []*VideoData{},
+		recordFPS:  in.RecordFPS,
+		// recordSeconds: in。/
 		width:         in.Width,
 		height:        in.Height,
 		timesRendered: 0,
@@ -232,6 +248,7 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	}
 
 	LoadOpenGLDataFromInputFile(&retProg, in)
+	glfw.SetTime(0)
 
 	return retProg
 }
@@ -321,12 +338,29 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 func glDraw(window *glfw.Window, program *OpenGLProgram) {
 
+	// gl.Viewport(0, 0, int32(program.width*2), int32(program.height*2))
 	gl.UseProgram(program.programID)
 
 	if !paused {
 		time := glfw.GetTime()
 		elapsed := time - previousTime
 		previousTime = time
+
+		if program.recordFPS < 0 {
+			gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+			w, h := window.GetFramebufferSize()
+			gl.Viewport(0, 0, int32(w), int32(h))
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
+		} else {
+			// gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
+			gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
+			gl.Viewport(0, 0, int32(program.width), int32(program.height))
+			time = float64(program.timesRendered) / float64(program.recordFPS)
+			fmt.Printf("time %f %d %d\n", time, program.recordFPS, program.timesRendered)
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
+		}
 
 		// updateVideo(time, video)
 		for _, vid := range program.videos {
@@ -336,28 +370,23 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 
 		// fmt.Printf("FPS: %f", 1.0/elapsed)
 
-		if program.recordFPS < 0 {
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
-		} else {
-
-			time := float32(program.timesRendered) / float32(program.recordFPS)
-			fmt.Printf("time %f %d %d\n", time, program.recordFPS, program.timesRendered)
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), time)
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
-		}
-
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		//glSetShaderData(program)
 
 		gl.BindVertexArray(program.vao)
+		// gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+		// gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
+
 		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
+
+		gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
 
 		if program.recordFPS > 0 {
 			fWidth, fHeight := window.GetFramebufferSize()
-			width, height := window.GetSize()
-			fmt.Println(window.GetFramebufferSize())
-			writeData(int32(fWidth), int32(fHeight), int32(width), int32(height))
+			// width, height := window.GetSize()
+			// fmt.Println(window.GetFramebufferSize())
+			writeData(int32(fWidth), int32(fHeight), int32(program.width), int32(program.height))
+			// writeData()
 		}
 
 		program.timesRendered++

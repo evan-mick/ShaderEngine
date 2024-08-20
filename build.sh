@@ -1,2 +1,1 @@
-go build -o shaders
-go build
+go build 

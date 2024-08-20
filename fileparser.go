@@ -6,12 +6,13 @@ import (
 )
 
 type InputFile struct {
-	Width      int      `json:"width"`
-	Height     int      `json:"height"`
-	ShaderPath string   `json:"shader"`
-	Folder     string   `json:"folder"`
-	RecordFPS  int32    `json:"recordfps"`
-	Textures   []string `json:"textures"`
+	Width         int      `json:"width"`
+	Height        int      `json:"height"`
+	ShaderPath    string   `json:"shader"`
+	Folder        string   `json:"folder"`
+	RecordFPS     int32    `json:"recordfps"`
+	RecordSeconds int64    `json:recordSeconds`
+	Textures      []string `json:"textures"`
 }
 
 func ParseJsonToInputFile(filepath string) (InputFile, error) {
