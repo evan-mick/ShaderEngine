@@ -81,8 +81,14 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 
 }
 
-func (dat *VideoData) GetData() []int8 {
-	return dat.material.DataPtrInt8()
+func (dat *VideoData) GetData() []uint8 {
+	fmt.Println("TYPE: " + dat.material.Type().String())
+	mat, err := dat.material.DataPtrUint8()
+	if err != nil {
+		fmt.Println("Get Data error " + err.Error())
+		return mat
+	}
+	return mat
 }
 
 func (dat *VideoData) ReadFrame(frame int) {

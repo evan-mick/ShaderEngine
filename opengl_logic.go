@@ -103,6 +103,7 @@ type OpenGLProgram struct {
 
 	recordFPS     int32
 	recordSeconds int64
+	time          float64
 	timesRendered uint64
 	width         int
 	height        int
@@ -342,29 +343,29 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 	gl.UseProgram(program.programID)
 
 	if !paused {
-		time := glfw.GetTime()
-		elapsed := time - previousTime
-		previousTime = time
+		cur_time := glfw.GetTime()
+		elapsed := cur_time - previousTime
+		previousTime = cur_time
 
 		if program.recordFPS < 0 {
 			gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 			w, h := window.GetFramebufferSize()
 			gl.Viewport(0, 0, int32(w), int32(h))
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time+100))
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
 		} else {
 			// gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
 			gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
 			gl.Viewport(0, 0, int32(program.width), int32(program.height))
-			time = float64(program.timesRendered) / float64(program.recordFPS)
-			fmt.Printf("time %f %d %d\n", time, program.recordFPS, program.timesRendered)
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(time))
+			program.time = float64(program.timesRendered) / float64(program.recordFPS)
+			fmt.Printf("time %f %d %d\n", program.time, program.recordFPS, program.timesRendered)
+			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
 		}
 
 		// updateVideo(time, video)
 		for _, vid := range program.videos {
-			updateVideo(time, vid)
+			updateVideo(program.time, vid)
 			fmt.Println(vid.material.Type().String())
 		}
 
@@ -390,6 +391,7 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 		}
 
 		program.timesRendered++
+		program.time += elapsed
 		window.SwapBuffers()
 	}
 
