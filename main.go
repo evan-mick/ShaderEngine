@@ -73,12 +73,17 @@ func main() {
 func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 
 	if window.GetKey(glfw.KeyR) == glfw.Press {
+		// this is broken unsure why
 		CleanUp(program)
 		*program = initGLProgram(in)
 		fmt.Println("RELOADED!")
 		lastKey = window.GetKey(glfw.KeyR)
+	} else if window.GetKey(glfw.KeyS) == glfw.Press {
+		regenerateShader(program)
 	} else if window.GetKey(glfw.KeyT) == glfw.Press {
 		program.time = 0
+	} else if window.GetKey(glfw.KeyC) == glfw.Press {
+
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN
 		//goFullScreen(in.Width, in.Height, !globalDat.fullscreen)

@@ -108,6 +108,7 @@ type OpenGLProgram struct {
 	width         int
 	height        int
 	folder        string
+	filePrefix    string
 }
 
 type GlobalGLData struct {
@@ -234,6 +235,8 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	retProg := OpenGLProgram{
 		programID:  prog,
 		fileName:   in.ShaderPath,
+		filePrefix: prefix,
+
 		vertexID:   vertex,
 		fragmentID: frag,
 		textures:   []uint32{},
@@ -252,6 +255,24 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	glfw.SetTime(0)
 
 	return retProg
+}
+
+func regenerateShader(program *OpenGLProgram) {
+	prog := program.programID
+
+	fragSrc, err := getTextFromFile(program.filePrefix + program.fileName)
+
+	if err != nil {
+		panic("Error getting file ")
+	}
+
+	vertex, frag := createShaders(fragSrc, vertexShaderSource)
+	gl.AttachShader(prog, vertex)
+	gl.AttachShader(prog, frag)
+	gl.LinkProgram(prog)
+
+	gl.UseProgram(prog)
+
 }
 
 func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
