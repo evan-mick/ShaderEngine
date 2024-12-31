@@ -1,4 +1,4 @@
-module example.com/openGLThang/v2
+module example.com/shaderEngine/v2
 
 go 1.22.1
 

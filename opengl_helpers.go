@@ -72,7 +72,7 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 
 }
 
-func makeVao(points []float32) (vao uint32, vbo uint32) {
+func makeQuadVaoVbo(points []float32) (vao uint32, vbo uint32) {
 
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
@@ -130,19 +130,8 @@ func loadPictureAsTexture(file string) uint32 {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(rgba.Pix))
 
-	//rgbaMain = rgba
 	return texture
 }
-
-/*
-func goFullScreen(width int, height int, fullscreen bool) {
-	if fullscreen {
-		monitor := glfw.GetPrimaryMonitor()
-		glfw.GetCurrentContext().SetMonitor(monitor, 0, 0, width, height, 60)
-	} else {
-		glfw.GetCurrentContext().SetMonitor(nil, 0, 0, width, height, 60)
-	}
-}*/
 
 func setupVideo(file string) (uint32, *VideoData) {
 
@@ -163,16 +152,6 @@ func setupVideo(file string) (uint32, *VideoData) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	// gl.TexImage2D(
-	// 	gl.TEXTURE_2D,
-	// 	0,
-	// 	gl.RGBA,
-	// 	int32(video.width),
-	// 	int32(video.height),
-	// 	0,
-	// 	gl.RGBA,
-	// 	gl.UNSIGNED_BYTE,
-	// 	gl.Ptr(video.GetData()))
 
 	video.texture = texture
 	return texture, video
@@ -192,20 +171,10 @@ func updateVideo(seconds float64, video *VideoData) {
 	} else {
 		video.ReadFrame(0)
 	}
-
-	//mat := gocv.NewMat()
 	ptr := video.GetData()
-	//if video.removeBackground {
-	//	back := //gocv.NewBackgroundSubtractorMOG2WithParams(500, 16, false)
-	//		back.Apply(*video.material, video.material)
-
-	//globalCVHelper.BackgroundSub.Apply(*video.material, &mat)
-	//ptr = mat.DataPtrInt8()
-	//}
 
 	gl.ActiveTexture(video.texture)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
-	// fmt.Printf("video text %d", video.texture)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
