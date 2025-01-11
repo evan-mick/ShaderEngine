@@ -8,16 +8,16 @@ import (
 	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
-	"gocv.io/x/gocv"
 )
 
-type CVHelpers struct {
+// GO CV stuff, not implemented
+/*type CVHelpers struct {
 	BackgroundSub gocv.BackgroundSubtractorKNN
 }
 
 var globalCVHelper CVHelpers = CVHelpers{
 	gocv.NewBackgroundSubtractorKNN(),
-}
+}*/
 
 func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
 

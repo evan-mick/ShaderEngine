@@ -23,6 +23,10 @@ package main
 //			Possibly have 2 textures and flip between them
 //		then go on to draw frame
 
+// To play the audio, separately, will want to play stuff with another library
+// https://pkg.go.dev/github.com/hajimehoshi/ebiten/v2/audio
+// seems promising, from a game engine too
+
 // I think the move is to get a basic version of this, then profile and see if its actually a bottleneck compared with opengl stuff
 
 type AudioLoadType uint8

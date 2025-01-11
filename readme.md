@@ -72,6 +72,7 @@ There are a number of potential features I would like to add, here is a list so 
 - [ ] "Hot reloading" shaders, no need to restart the image loading sequence when shader gets recompiled or loaded in
 - [ ] Remappable keywords
 - [ ] Ex. ala shadertoy time is "iTime" right now, but the json could rename that to "time" or "t" or whatever someone wants
+- [ ] Extra effects, including real time background removal (opencv)
 
 ### Major, long term
 - Direct Music integration

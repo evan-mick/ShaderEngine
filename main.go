@@ -25,17 +25,17 @@ func main() {
 	}*/
 
 	//file := "main.json"
-	file := "shaders/vortex.json"
+	if len(os.Args) < 2 {
+		fmt.Println("Not enough arguments, please pass in a json file")
+		return
+	}
 	var fullscreen bool = false
-
-	if len(os.Args) > 1 {
-		file = os.Args[1]
-		if len(os.Args) > 2 {
-			var err error
-			fullscreen, err = strconv.ParseBool(os.Args[2])
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+	file := os.Args[1]
+	if len(os.Args) > 2 {
+		var err error
+		fullscreen, err = strconv.ParseBool(os.Args[2])
+		if err != nil {
+			fmt.Println(err.Error())
 		}
 	}
 
