@@ -207,6 +207,8 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 	videoWriter = setupVideoWriter(prog)
 	mat := gocv.NewMatWithSize(prog.height, prog.width, gocv.MatTypeCV8SC3)
+	// Originally wanted to use multiple materials for videos to potentially make it quicker
+	// For whatever reason, could not get it to work, may revisit
 	writerData = &VideoData{
 		// video: video,
 		// writer:       nil,
@@ -225,11 +227,14 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	loc := gl.GetUniformLocation(prog.programID, gl.Str("res\x00"))
 	gl.Uniform2f(loc, float32(input.Width), float32(input.Height))
 
+	// TODO: What if out of range? More than 32 textures?
 	for i, texturePath := range input.Textures {
 
 		isWebcam := (texturePath == "WEBCAM")
 
-		texturePath = input.Folder + "/" + texturePath
+		// Add the file prefix thing?
+		// Want to be able to run json from anywhere and have the whole thing just work
+		texturePath = /*prog.filePrefix + "/" +*/ input.Folder + "/" + texturePath
 
 		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg") || strings.HasSuffix(texturePath, ".mkv")
 		isVideo := strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
@@ -248,18 +253,13 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		} else if isVideo || isWebcam {
 			var vidData *VideoData
 
-			//*writerData.material = gocv.NewMat()
-
 			if isVideo {
 				texture, vidData = setupVideo(texturePath)
-				//fmt.Printf("NULL VIDEO: %t", vidData.video == nil)
 				vidData.ReadAllFrames()
-				//fmt.Printf("%d", len(vidData.allFrames))
 			} else {
 				texture, vidData = setupVideo("WEBCAM")
 			}
 
-			// IT IS NOT RECORDING RIGHT
 			//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
 			//vidData.video.Read(&writerData.material)
 
@@ -267,17 +267,9 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		}
 		newTextures = append(newTextures, texture)
 
-		// TODO: What if out of range? More than 32 textures?
-		// for _, text := range newTextures {
-
-		// gl.BindTexture(gl.TEXTURE_2D, texture)
-
 		str := fmt.Sprintf("tex%d", i)
 		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
 		gl.Uniform1i(textureUniform, int32(i))
-		//fmt.Printf("TEXTURE %d %d %s\n", texture, i, str)
-		// }
-
 	}
 
 	prog.textures = newTextures

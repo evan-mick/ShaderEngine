@@ -68,10 +68,10 @@ Notably, if the user switched the -1 in recordfps to any number greater than 0, 
 There are a number of potential features I would like to add, here is a list so one can get the idea of what direction I would want this project to head
 
 ### Minor
-- Fullscreen switching in viewport
-- "Hot reloading" shaders, no need to restart the image loading sequence when shader gets recompiled or loaded in
-- Remappable keywords
-	- Ex. ala shadertoy time is "iTime" right now, but the json could rename that to "time" or "t" or whatever someone wants
+- [ ] Fullscreen switching in viewport
+- [ ] "Hot reloading" shaders, no need to restart the image loading sequence when shader gets recompiled or loaded in
+- [ ] Remappable keywords
+- [ ] Ex. ala shadertoy time is "iTime" right now, but the json could rename that to "time" or "t" or whatever someone wants
 
 ### Major, long term
 - Direct Music integration
@@ -81,3 +81,4 @@ There are a number of potential features I would like to add, here is a list so 
 	- Timestamping (or "beatstamping") different shaders together
 	- "Events" at certain times
 - (Long, long term) GUI
+- (Long, long term) program sharing website

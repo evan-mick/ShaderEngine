@@ -1,0 +1,11 @@
+{
+    "width": 1920,
+    "height": 1080,
+    "fullscreen": true,
+    "shader": "main.frag",
+    "folder": "webcam",
+    "recordfps": -1,
+    "textures": [
+        "WEBCAM"
+    ]
+}
