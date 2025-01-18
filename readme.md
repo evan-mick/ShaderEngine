@@ -16,6 +16,7 @@ go build
 It should output a binary entitled "shaderEngine"
 
 
+
 Shader engine is a program that takes in a json file, currently with the following properties
 ```
 {
@@ -62,6 +63,11 @@ Upon the user running ```./shaderEngine shaderEngineExample.json``` where the js
 
 Notably, if the user switched the -1 in recordfps to any number greater than 0, they would only see a blank window, and after a few seconds (or minutes) a video with the name of their json would be outputted. This would of course yield some unprectible results given that they are using the webcam for it.
 
+## Dependencies
+
+The biggest external dependency that may cause headache for this project is OpenCV. It is mainly used for video reading and writing as well as its webcam support.
+Part of the future plan is to add its effects as well, which is why it is being left in and I will not try to replace it with something more lightweight.
+OpenGL is also a major dependency, but that should come with most OS's. 
 
 ## TODO
 
