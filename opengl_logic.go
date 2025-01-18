@@ -110,7 +110,7 @@ func glSetupNewWindow(width int, height int, fullscreen bool) *glfw.Window {
 		monitor = nil
 	}
 
-	window, err := glfw.CreateWindow(width, height, "IN MY IGNORANCE", monitor, nil)
+	window, err := glfw.CreateWindow(width, height, "Shader Engine", monitor, nil)
 
 	globalDat.window = window
 
@@ -137,7 +137,7 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 
 	dir, filename := path.Split(full_filepath)
 
-	prefix := dir + "/"
+	prefix := dir
 	folder := in.Folder + "/"
 
 	fragSrc, err := getTextFromFile(prefix + folder + in.ShaderPath)
@@ -171,7 +171,7 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		shaderFileName: in.ShaderPath,
 		jsonFileName:   filename,
 		directory:      prefix,
-		folder:         in.Folder,
+		folder:         folder,
 
 		vertexID:      vertex,
 		fragmentID:    frag,
@@ -180,6 +180,7 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		vbo:           vbo,
 		videos:        []*VideoData{},
 		recordFPS:     in.RecordFPS,
+		time:          0,
 		width:         in.Width,
 		height:        in.Height,
 		timesRendered: 0,
@@ -197,17 +198,23 @@ func regenerateShader(program *OpenGLProgram) {
 
 	fragSrc, err := getTextFromFile(program.directory + program.folder + program.shaderFileName)
 
+	gl.DetachShader(prog, program.vertexID)
+	gl.DetachShader(prog, program.fragmentID)
+
 	if err != nil {
 		panic("Error getting file ")
 	}
 
 	vertex, frag := createShaders(fragSrc, vertexShaderSource)
+
+	program.vertexID = vertex
+	program.fragmentID = frag
+
+	gl.UseProgram(prog)
 	gl.AttachShader(prog, vertex)
 	gl.AttachShader(prog, frag)
 	gl.LinkProgram(prog)
-
-	gl.UseProgram(prog)
-
+	program.time = 0
 }
 
 func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
@@ -302,7 +309,6 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 			gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 			w, h := window.GetFramebufferSize()
 			gl.Viewport(0, 0, int32(w), int32(h))
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
 		} else {
 			// gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
@@ -310,9 +316,9 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) {
 			gl.Viewport(0, 0, int32(program.width), int32(program.height))
 			program.time = float64(program.timesRendered) / float64(program.recordFPS)
 			fmt.Printf("time %f %d %d\n", program.time, program.recordFPS, program.timesRendered)
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
 		}
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 
 		// updateVideo(time, video)
 		for _, vid := range program.videos {
