@@ -214,7 +214,10 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	var newTextures []uint32
 	var newVideos []*VideoData
 
-	videoWriter = setupVideoWriter(prog)
+	// Only write if we are trying to record
+	if prog.recordFPS > 0 {
+		videoWriter = setupVideoWriter(prog)
+	}
 	mat := gocv.NewMatWithSize(prog.height, prog.width, gocv.MatTypeCV8SC3)
 	// Originally wanted to use multiple materials for videos to potentially make it quicker
 	// For whatever reason, could not get it to work, may revisit
@@ -370,6 +373,10 @@ func CleanUp(prog *OpenGLProgram) {
 	gl.DeleteVertexArrays(1, &prog.vao)
 	gl.DeleteBuffers(1, &prog.vbo)
 	gl.DeleteProgram(prog.programID)
+
+	if videoWriter != nil {
+		videoWriter.Close()
+	}
 }
 
 //func genBuffers

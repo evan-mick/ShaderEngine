@@ -62,12 +62,6 @@ func main() {
 
 	glTerminate()
 	CleanUp(&program)
-
-	for _, vid := range program.videos {
-		endVideo(vid)
-	}
-	videoWriter.Close()
-
 }
 
 func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {

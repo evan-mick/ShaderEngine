@@ -161,6 +161,7 @@ func (dat *VideoData) ReadAllFrames() {
 }
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
+	//fmt.Printf("%s", data.directory+data.shaderFileName+".avi")
 	writer, err := gocv.VideoWriterFile(data.directory+data.shaderFileName+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
 
 	if err != nil {
@@ -225,22 +226,6 @@ func FlipVertically(img *image.RGBA) {
 			}
 		}
 	}
-}
-
-func endVideo(data *VideoData) {
-	// data.writer.Close()
-	videoWriter.Close()
-	// outputCtx.CloseOutputAndRelease()
-	// data.video.Close()
-	/*err := ffmpeg_go.Input("testout.avi").
-		Filter("transpose", ffmpeg_go.Args{"0"}).
-		Filter("transpose", ffmpeg_go.Args{"2"}).
-		Output("test.avi").
-		Run()
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}*/
 }
 
 //	video.Set(gocv.VideoCapturePosFrames, 0)
