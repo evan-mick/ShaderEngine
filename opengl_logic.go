@@ -4,6 +4,7 @@ import (
 	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
+	"path"
 	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
@@ -46,8 +47,11 @@ var (
 )
 
 type OpenGLProgram struct {
-	programID  uint32
-	fileName   string
+	programID      uint32
+	shaderFileName string
+	jsonFileName   string
+	directory      string
+
 	vertexID   uint32
 	fragmentID uint32
 	// data       []GLData
@@ -123,7 +127,7 @@ func glTerminate() {
 	glfw.Terminate()
 }
 
-func initGLProgram(in *InputFile) OpenGLProgram {
+func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
@@ -131,9 +135,12 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	vao, vbo := makeQuadVaoVbo(quad)
 	prog := gl.CreateProgram()
 
-	prefix := in.Folder + "/"
+	dir, filename := path.Split(full_filepath)
 
-	fragSrc, err := getTextFromFile(prefix + in.ShaderPath)
+	prefix := dir + "/"
+	folder := in.Folder + "/"
+
+	fragSrc, err := getTextFromFile(prefix + folder + in.ShaderPath)
 
 	if err != nil {
 		panic("Error getting file ")
@@ -160,9 +167,11 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 	}
 
 	retProg := OpenGLProgram{
-		programID:  prog,
-		fileName:   in.ShaderPath,
-		filePrefix: prefix,
+		programID:      prog,
+		shaderFileName: in.ShaderPath,
+		jsonFileName:   filename,
+		directory:      prefix,
+		folder:         in.Folder,
 
 		vertexID:      vertex,
 		fragmentID:    frag,
@@ -186,7 +195,7 @@ func initGLProgram(in *InputFile) OpenGLProgram {
 func regenerateShader(program *OpenGLProgram) {
 	prog := program.programID
 
-	fragSrc, err := getTextFromFile(program.filePrefix + program.fileName)
+	fragSrc, err := getTextFromFile(program.directory + program.folder + program.shaderFileName)
 
 	if err != nil {
 		panic("Error getting file ")
@@ -234,7 +243,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 
 		// Add the file prefix thing?
 		// Want to be able to run json from anywhere and have the whole thing just work
-		texturePath = /*prog.filePrefix + "/" +*/ input.Folder + "/" + texturePath
+		texturePath = /*prog.filePrefix + "/" +*/ prog.directory + input.Folder + "/" + texturePath
 
 		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg") || strings.HasSuffix(texturePath, ".mkv")
 		isVideo := strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")

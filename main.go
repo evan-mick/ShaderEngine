@@ -51,7 +51,7 @@ func main() {
 	window := glInitFull(&in, fullscreen)
 	defer glTerminate()
 
-	program := initGLProgram(&in)
+	program := initGLProgram(&in, file)
 
 	// vao := makeVao(quad)
 	for !window.ShouldClose() {
@@ -75,7 +75,7 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 	if window.GetKey(glfw.KeyR) == glfw.Press {
 		// this is broken unsure why
 		CleanUp(program)
-		*program = initGLProgram(in)
+		*program = initGLProgram(in, program.directory+program.jsonFileName)
 		fmt.Println("RELOADED!")
 		lastKey = window.GetKey(glfw.KeyR)
 	} else if window.GetKey(glfw.KeyS) == glfw.Press {
