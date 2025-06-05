@@ -69,6 +69,12 @@ The biggest external dependency that may cause headache for this project is Open
 Part of the future plan is to add its effects as well, which is why it is being left in and I will not try to replace it with something more lightweight.
 OpenGL is also a major dependency, but that should come with most OS's. 
 
+It also, in my experience, requires installing
+- protobuf
+- abseil-cpp
+- hdf5
+and possibly other packages. 
+
 ## TODO
 
 There are a number of potential features I would like to add, here is a list so one can get the idea of what direction I would want this project to head
