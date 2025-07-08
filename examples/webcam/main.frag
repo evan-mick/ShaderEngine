@@ -36,9 +36,9 @@ float brightness(vec4 col) {
 }
 
 vec4 webcamSection() {
-    vec4 new_col = background();
-    if (step(0.2, edge(uv, tex3)*20.0) > 0.0) {
-        return vec4(floor(((brightness(new_col) + 0.5)*16.0))/16.0, 0.0, 0.0, 1.0);
+    vec4 new_col = vec4(1.0);
+    if (step(0.2, edge(uv, tex0)*10.0) > 0.0) {
+        return vec4(1.0, 0.0, 0.0, 1.0);
     }
     return new_col;
 }
