@@ -246,45 +246,53 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	loc := gl.GetUniformLocation(prog.programID, gl.Str("res\x00"))
 	gl.Uniform2f(loc, float32(input.Width), float32(input.Height))
 
-	// TODO: What if out of range? More than 32 textures?
-	for i, texturePath := range input.Textures {
+	type TextureType uint8
+	const (
+		INVALID TextureType = 0
+		PHOTO               = 1
+		VIDEO               = 2
+		WEBCAM              = 3
+	)
 
-		isWebcam := (texturePath == "WEBCAM")
+	// TODO: What if out of range? More than 32 textures?
+	for i, fileTexturePath := range input.Textures {
+
+		textureType := INVALID
 
 		// Add the file prefix thing?
 		// Want to be able to run json from anywhere and have the whole thing just work
-		texturePath = /*prog.filePrefix + "/" +*/ prog.directory + input.Folder + "/" + texturePath
+		texturePath := /*prog.filePrefix + "/" +*/ prog.directory + input.Folder + "/" + fileTexturePath
 
-		isPhoto := strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg") || strings.HasSuffix(texturePath, ".mkv")
-		isVideo := strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg")
-
-		if !isPhoto && !isVideo && !isWebcam {
-			fmt.Println("ERROR, invalid file format for " + texturePath)
-			continue
+		if fileTexturePath == "WEBCAM" {
+			textureType = WEBCAM
+		} else if strings.HasSuffix(texturePath, ".jpg") || strings.HasSuffix(texturePath, ".png") || strings.HasSuffix(texturePath, ".jpeg") || strings.HasSuffix(texturePath, ".mkv") {
+			textureType = PHOTO
+		} else if strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg") {
+			textureType = VIDEO
 		}
 
 		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
-
 		var texture uint32
+		var vidData *VideoData
 
-		if isPhoto {
+		switch textureType {
+		case INVALID:
+			fmt.Println("ERROR, invalid file format for " + texturePath)
+			continue
+		case PHOTO:
 			texture = loadPictureAsTexture(texturePath)
-		} else if isVideo || isWebcam {
-			var vidData *VideoData
-
-			if isVideo {
-				texture, vidData = setupVideo(texturePath)
-				vidData.ReadAllFrames()
-			} else {
-				texture, vidData = setupVideo("WEBCAM")
-			}
-
-			//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
-			//vidData.video.Read(&writerData.material)
-
+		case VIDEO:
+			texture, vidData = setupVideo(texturePath)
+			vidData.ReadAllFrames()
+			newVideos = append(newVideos, vidData)
+		case WEBCAM:
+			texture, vidData = setupVideo("WEBCAM")
 			newVideos = append(newVideos, vidData)
 		}
 		newTextures = append(newTextures, texture)
+
+		//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
+		//vidData.video.Read(&writerData.material)
 
 		str := fmt.Sprintf("tex%d", i)
 		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
