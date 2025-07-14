@@ -26,7 +26,7 @@ Shader engine is a program that takes in a json file, currently with the followi
     "folder" : (string),
     "fullscreen" : (bool),
     "recordfps" : (int),
-    "textures" : [(string)] (ie list of strings representing file pathes)
+    "textures" : [(string)] (ie list of strings representing file paths)
 }
 ```
 
