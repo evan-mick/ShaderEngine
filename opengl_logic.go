@@ -53,21 +53,19 @@ type Channel struct {
 }
 
 type OpenGLProgram struct {
-	programID      uint32
 	shaderFileName string
 	jsonFileName   string
 	directory      string
 	renderFBO      uint32
 
+	// Data for channels
+	programID  uint32
 	vertexID   uint32
 	fragmentID uint32
-	// data       []GLData
-
-	// This may not be best, oh well for now
-	textures []uint32
-	vbo      uint32
-	vao      uint32
-	fbo      uint32
+	textures   []uint32
+	vbo        uint32
+	vao        uint32
+	fbo        uint32
 
 	videos []*VideoData
 
@@ -245,8 +243,6 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	// Originally wanted to use multiple materials for videos to potentially make it quicker
 	// For whatever reason, could not get it to work, may revisit
 	writerData = &VideoData{
-		// video: video,
-		// writer:       nil,
 		fps: float64(prog.recordFPS),
 		// frames:       int(video.Get(gocv.VideoCaptureFrameCount)),
 		width:        prog.width,
@@ -337,23 +333,29 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 		return false
 	}
 
+	var elapsed float64
+	var w, h int
 	// Update appropriate variables
 	if isLiveVideo {
-		cur_time := glfw.GetTime()
-		elapsed := cur_time - previousTime
-		previousTime = cur_time
+		elapsed := glfw.GetTime() - previousTime
+		previousTime = glfw.GetTime()
 		program.time += elapsed
+
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-		w, h := window.GetFramebufferSize()
-		gl.Viewport(0, 0, int32(w), int32(h))
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
+		w, h = window.GetFramebufferSize()
 	} else {
-		gl.BindFramebuffer(gl.FRAMEBUFFER, program.renderFBO)
-		gl.Viewport(0, 0, int32(program.width), int32(program.height))
+
 		program.time = float64(program.timesRendered) / float64(program.recordFPS)
+		elapsed = 1.0 / float64(program.recordFPS)
+
 		fmt.Printf("time %f %d %d\n", program.time, program.recordFPS, program.timesRendered)
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
+
+		gl.BindFramebuffer(gl.FRAMEBUFFER, program.renderFBO)
+		w = program.width
+		h = program.height
 	}
+	gl.Viewport(0, 0, int32(w), int32(h))
+	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
 	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 
 	for _, vid := range program.videos {
