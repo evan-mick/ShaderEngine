@@ -5,6 +5,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
@@ -31,7 +32,13 @@ const (
 
 var (
 	quad = []float32{
+		//-0.5, 0.5, 0,
+		//0.5, -0.5, 0,
+		//0.5, 0.5, 0,
 
+		//-0.5, 0.5, 0,
+		//-0.5, -0.5, 0,
+		//0.5, -0.5, 0,
 		1, -1, 0,
 		1, 1, 0,
 		-1, 1, 0,
@@ -54,6 +61,7 @@ type Channel struct {
 	vbo        uint32
 	vao        uint32
 	fbo        uint32
+	fboTexture uint32
 }
 
 type OpenGLProgram struct {
@@ -147,7 +155,7 @@ func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel 
 	fragSrc, err := getTextFromFile(program.directory + program.folder + channelData.ShaderPath)
 
 	if err != nil {
-		panic("Error getting file ")
+		panic("Error getting file " + err.Error())
 	}
 
 	vertex, frag := createShaders(fragSrc, vertexShaderSource)
@@ -166,6 +174,8 @@ func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel 
 	gl.GenTextures(1, &texture)
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(program.width), int32(program.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
 	//}
 
@@ -174,14 +184,16 @@ func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel 
 		vertexID:       vertex,
 		fragmentID:     frag,
 		fbo:            fbo,
+		fboTexture:     texture,
 		shaderFileName: channelData.ShaderPath,
 		vao:            vao,
 		vbo:            vbo,
 		textures:       []uint32{},
 	}
 
-	LoadOpenGLDataFromInputFile(program, &channelData, &retChannel)
-
+	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+	gl.UseProgram(0)
+	gl.BindTexture(gl.TEXTURE_2D, 0)
 	return retChannel
 }
 
@@ -231,13 +243,20 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
 	// But actually, unless we're recording, main channel should go straight to window (CHANGE FBO)
-	mainChan := initializeChannel(&retProg, ChannelJson{ShaderPath: in.ShaderPath, Textures: in.Textures})
+	mainChanData := ChannelJson{ShaderPath: in.ShaderPath, Textures: in.Textures}
+	mainChan := initializeChannel(&retProg, mainChanData)
 	retProg.mainChannel = &mainChan
 	retProg.mainChannel.fbo = 0
 
 	for _, info := range in.Channels {
 		newChan := initializeChannel(&retProg, info)
 		retProg.extraChannels = append(retProg.extraChannels, &newChan)
+	}
+
+	// Have to load data on second pass, because channel textures haven't been made yet before
+	LoadOpenGLDataFromInputFile(&retProg, &mainChanData, retProg.mainChannel)
+	for i, _ := range in.Channels {
+		LoadOpenGLDataFromInputFile(&retProg, &(in.Channels[i]), retProg.extraChannels[i])
 	}
 
 	return retProg
@@ -300,8 +319,10 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, 
 		PHOTO               = 1
 		VIDEO               = 2
 		WEBCAM              = 3
+		CHANNEL             = 4
 	)
 
+	gl.ActiveTexture(gl.TEXTURE0)
 	// TODO: What if out of range? More than 32 textures?
 	for _, fileTexturePath := range channelData.Textures {
 
@@ -310,6 +331,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, 
 		// Add the file prefix thing?
 		// Want to be able to run json from anywhere and have the whole thing just work
 		texturePath := /*prog.filePrefix + "/" +*/ prog.directory + prog.folder + "/" + fileTexturePath
+		chanVal, chanErr := strconv.Atoi(fileTexturePath)
 
 		if fileTexturePath == "WEBCAM" {
 			textureType = WEBCAM
@@ -317,6 +339,8 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, 
 			textureType = PHOTO
 		} else if strings.HasSuffix(texturePath, ".webm") || strings.HasSuffix(texturePath, ".mov") || strings.HasSuffix(texturePath, ".aiff") || strings.HasSuffix(texturePath, ".mp4") || strings.HasSuffix(texturePath, ".mpeg") {
 			textureType = VIDEO
+		} else if chanErr == nil || fileTexturePath == "MAIN" {
+			textureType = CHANNEL
 		}
 
 		// TODO: some smarter active texture stuff
@@ -341,8 +365,14 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, 
 		case WEBCAM:
 			texture, vidData = setupVideo("WEBCAM")
 			newVideos = append(newVideos, vidData)
+		case CHANNEL:
+			if fileTexturePath == "MAIN" {
+				texture = prog.mainChannel.fboTexture
+			} else if chanVal < len(prog.extraChannels) {
+				texture = prog.extraChannels[chanVal].fboTexture
+			}
 		}
-		gl.BindTexture(gl.TEXTURE_2D, texture)
+		//gl.BindTexture(gl.TEXTURE_2D, texture)
 		newTextures = append(newTextures, texture)
 
 		//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
@@ -366,8 +396,10 @@ func drawChannel(program *OpenGLProgram, channel *Channel, width int32, height i
 		panic("nil channel in draw")
 	}
 
-	gl.UseProgram(channel.programID)
+	//fmt.Printf("drawing channel: %s %f\n", channel.shaderFileName, program.time)
+
 	gl.BindFramebuffer(gl.FRAMEBUFFER, channel.fbo)
+	gl.UseProgram(channel.programID)
 	gl.Viewport(0, 0, width, height)
 	gl.Uniform1f(gl.GetUniformLocation(channel.programID, gl.Str("deltaTime\x00")), elapsed)
 	gl.Uniform1f(gl.GetUniformLocation(channel.programID, gl.Str("iTime\x00")), float32(program.time))
@@ -376,12 +408,13 @@ func drawChannel(program *OpenGLProgram, channel *Channel, width int32, height i
 	gl.Uniform2f(loc, float32(program.width), float32(program.height))
 
 	// GO THROUGH TEXTURES AND ACTIVATE THEM
-	for i, texID := range channel.textures {
+	for i, _ := range channel.textures {
 		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
-		gl.BindTexture(gl.TEXTURE_2D, texID)
+		gl.BindTexture(gl.TEXTURE_2D, channel.textures[i])
 		str := fmt.Sprintf("tex%d", i)
 		textureUniform := gl.GetUniformLocation(channel.programID, gl.Str(str+"\x00"))
 		gl.Uniform1i(textureUniform, int32(i))
+		//fmt.Printf("TEXTURES: %d\n", channel.textures[i])
 	}
 
 	// Draw to screen or to rendering
@@ -439,7 +472,7 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 	for _, channel := range program.extraChannels {
 		drawChannel(program, channel, int32(w), int32(h), float32(elapsed))
 	}
-	drawChannel(program, (program.mainChannel), int32(w), int32(h), float32(elapsed))
+	drawChannel(program, program.mainChannel, int32(w), int32(h), float32(elapsed))
 
 	if !isLiveVideo {
 		fWidth, fHeight := window.GetFramebufferSize()

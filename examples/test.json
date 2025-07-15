@@ -2,9 +2,9 @@
     "width": 1920,
     "height": 1080,
     "fullscreen": true,
-    "shader": "main.frag",
     "folder": "test",
     "recordfps": -1,
+    "shader": "main.frag",
     "textures": [
         "gopher.jpg"
     ]

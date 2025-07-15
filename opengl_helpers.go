@@ -181,7 +181,7 @@ func updateVideo(seconds float64, video *VideoData) {
 	}
 	ptr := video.GetData()
 
-	//gl.ActiveTexture(video.texture)
+	//gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
@@ -194,5 +194,5 @@ func updateVideo(seconds float64, video *VideoData) {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(ptr))
 
-	gl.BindTexture(gl.TEXTURE_2D, 0)
+	//gl.BindTexture(gl.TEXTURE_2D, 0)
 }

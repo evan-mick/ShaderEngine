@@ -2,15 +2,16 @@
     "width": 1920,
     "height": 1080,
     "fullscreen": true,
-    "folder": "test",
+    "folder": "test_channels",
     "recordfps": -1,
     "shader": "main.frag",
     "textures": [
-        "gopher.jpg"
+        "0",
+        "WEBCAM"
     ],
     "channels": [
             {
-                "shader": "main.frag",
+                "shader": "channel0.frag",
                 "textures": [
                     "gopher.jpg"
                 ]
