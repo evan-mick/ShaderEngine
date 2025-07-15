@@ -45,7 +45,11 @@ var (
 )
 
 type Channel struct {
-	textures []uint32
+	shaderFileName string
+	textures       []uint32
+
+	vertexID   uint32
+	fragmentID uint32
 }
 
 type OpenGLProgram struct {
@@ -53,6 +57,7 @@ type OpenGLProgram struct {
 	shaderFileName string
 	jsonFileName   string
 	directory      string
+	renderFBO      uint32
 
 	vertexID   uint32
 	fragmentID uint32
@@ -62,6 +67,7 @@ type OpenGLProgram struct {
 	textures []uint32
 	vbo      uint32
 	vao      uint32
+	fbo      uint32
 
 	videos []*VideoData
 
@@ -78,7 +84,7 @@ type OpenGLProgram struct {
 type GlobalGLData struct {
 	fullscreen bool
 	window     *glfw.Window
-	renderFBO  uint32
+	//renderFBO  uint32
 }
 
 var globalDat GlobalGLData
@@ -134,9 +140,6 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		panic(err)
 	}
 
-	vao, vbo := makeQuadVaoVbo(quad)
-	prog := gl.CreateProgram()
-
 	dir, filename := path.Split(full_filepath)
 
 	prefix := dir
@@ -155,18 +158,19 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		panic("Error getting file ")
 	}
 
+	vao, vbo := makeQuadVaoVbo(quad)
+	prog := gl.CreateProgram()
 	vertex, frag := createShaders(fragSrc, vertexShaderSource)
 	gl.AttachShader(prog, vertex)
 	gl.AttachShader(prog, frag)
 	gl.LinkProgram(prog)
-
 	gl.UseProgram(prog)
 
+	var fbo uint32 = 0
 	if in.RecordFPS > 0 {
-		var fbo uint32 = 0
 		gl.GenFramebuffers(1, &fbo)
 		gl.BindFramebuffer(gl.FRAMEBUFFER, fbo)
-		globalDat.renderFBO = fbo
+		//globalDat.renderFBO = fbo
 
 		var texture uint32 = 0
 		gl.GenTextures(1, &texture)
@@ -176,19 +180,22 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	}
 
 	retProg := OpenGLProgram{
-		programID:      prog,
-		shaderFileName: in.ShaderPath,
-		jsonFileName:   filename,
-		directory:      prefix,
-		folder:         folder,
+		programID:    prog,
+		jsonFileName: filename,
+		directory:    prefix,
+		folder:       folder,
+		renderFBO:    fbo,
 
-		vertexID:      vertex,
-		fragmentID:    frag,
-		textures:      []uint32{},
-		vao:           vao,
-		vbo:           vbo,
+		shaderFileName: in.ShaderPath,
+		vertexID:       vertex,
+		fragmentID:     frag,
+		textures:       []uint32{},
+		vao:            vao,
+		vbo:            vbo,
+
 		videos:        []*VideoData{},
 		recordFPS:     in.RecordFPS,
+		recordSeconds: in.RecordSeconds,
 		time:          0,
 		width:         in.Width,
 		height:        in.Height,
@@ -313,80 +320,69 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	prog.videos = newVideos
 }
 
-func glDraw(window *glfw.Window, program *OpenGLProgram) {
+func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 
 	// gl.Viewport(0, 0, int32(program.width*2), int32(program.height*2))
 	gl.UseProgram(program.programID)
 
-	if !paused {
+	isLiveVideo := program.recordFPS < 0
+
+	if !isLiveVideo && program.time >= float64(program.recordSeconds) {
+		return true
+	}
+
+	if paused {
+		// Still need to track input, namely for unpausing
+		glfw.PollEvents()
+		return false
+	}
+
+	// Update appropriate variables
+	if isLiveVideo {
 		cur_time := glfw.GetTime()
 		elapsed := cur_time - previousTime
 		previousTime = cur_time
-
-		if program.recordFPS < 0 {
-			gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-			w, h := window.GetFramebufferSize()
-			gl.Viewport(0, 0, int32(w), int32(h))
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
-		} else {
-			// gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
-			gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
-			gl.Viewport(0, 0, int32(program.width), int32(program.height))
-			program.time = float64(program.timesRendered) / float64(program.recordFPS)
-			fmt.Printf("time %f %d %d\n", program.time, program.recordFPS, program.timesRendered)
-			gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
-		}
-		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
-
-		// updateVideo(time, video)
-		for _, vid := range program.videos {
-			updateVideo(program.time, vid)
-			fmt.Println(vid.material.Type().String())
-		}
-
-		// fmt.Printf("FPS: %f", 1.0/elapsed)
-
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		//glSetShaderData(program)
-
-		gl.BindVertexArray(program.vao)
-		// gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-		// gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
-
-		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
-
-		gl.BindFramebuffer(gl.FRAMEBUFFER, globalDat.renderFBO)
-
-		if program.recordFPS > 0 {
-			fWidth, fHeight := window.GetFramebufferSize()
-			// width, height := window.GetSize()
-			// fmt.Println(window.GetFramebufferSize())
-			writeData(int32(fWidth), int32(fHeight), int32(program.width), int32(program.height))
-			// writeData()
-		}
-
-		program.timesRendered++
 		program.time += elapsed
-		window.SwapBuffers()
+		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+		w, h := window.GetFramebufferSize()
+		gl.Viewport(0, 0, int32(w), int32(h))
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
+	} else {
+		gl.BindFramebuffer(gl.FRAMEBUFFER, program.renderFBO)
+		gl.Viewport(0, 0, int32(program.width), int32(program.height))
+		program.time = float64(program.timesRendered) / float64(program.recordFPS)
+		fmt.Printf("time %f %d %d\n", program.time, program.recordFPS, program.timesRendered)
+		gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), 1.0/float32(program.recordFPS))
+	}
+	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
+
+	for _, vid := range program.videos {
+		updateVideo(program.time, vid)
+		fmt.Println(vid.material.Type().String())
 	}
 
-	glfw.PollEvents()
+	// Draw to screen or to rendering
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.BindVertexArray(program.vao)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
+	gl.BindFramebuffer(gl.FRAMEBUFFER, program.renderFBO)
+
+	if !isLiveVideo {
+		fWidth, fHeight := window.GetFramebufferSize()
+		writeData(int32(fWidth), int32(fHeight), int32(program.width), int32(program.height))
+	}
+
+	program.timesRendered++
+	window.SwapBuffers()
+	glfw.PollEvents()
+	return false
 }
 
-/*func glSetShaderData(dat uint32) {
-	res_str, free := gl.Strs("res")
-	gl.Uniform2i(gl.GetUniformLocation(dat, *res_str), width, height)
-	free()
-}*/
-
 // FREEING FUNCTIONS
-
 func CleanUp(prog *OpenGLProgram) {
-	// May need to use for loops?
 
 	for _, texture := range prog.textures {
-		//gl.DeleteTextures(int32(len(prog.textures)), &prog.textures[0])
 		gl.DeleteTextures(1, &texture)
 	}
 

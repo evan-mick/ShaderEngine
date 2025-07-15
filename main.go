@@ -54,9 +54,9 @@ func main() {
 	program := initGLProgram(&in, file)
 
 	// vao := makeVao(quad)
-	for !window.ShouldClose() {
-
-		glDraw(window, &program)
+	var finished = false
+	for !window.ShouldClose() && !finished {
+		finished = glDraw(window, &program)
 		checkInputs(window, &program, &in)
 	}
 
