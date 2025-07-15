@@ -19,6 +19,11 @@ var globalCVHelper CVHelpers = CVHelpers{
 	gocv.NewBackgroundSubtractorKNN(),
 }*/
 
+func fragShaderCompilable(src string) bool {
+	_, err := compileShader(src, gl.FRAGMENT_SHADER)
+	return err == nil
+}
+
 func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
 
 	vertexShader, err := compileShader(vertSrc, gl.VERTEX_SHADER)

@@ -18,10 +18,11 @@ type InputFile struct {
 	RecordFPS     int32  `json:"recordfps"`
 	RecordSeconds int64  `json:recordSeconds`
 
-	// ShaderPath and Textures are default, but overriden by Channels field
-	ShaderPath string        `json:"shader"`
-	Textures   []string      `json:"textures"`
-	Channels   []ChannelJson `json:channels`
+	// ShaderPath and Textures are main channel, Channels is extra
+	ShaderPath string   `json:"shader"`
+	Textures   []string `json:"textures"`
+
+	Channels []ChannelJson `json:channels`
 }
 
 func ParseJsonToInputFile(filepath string) (InputFile, error) {

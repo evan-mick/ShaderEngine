@@ -4,6 +4,10 @@
     "fullscreen": true,
     "folder": "test",
     "recordfps": -1,
+    "shader": "main.frag",
+    "textures": [
+        "gopher.jpg"
+    ],
     "channels": [
             {
                 "shader": "main.frag",

@@ -72,3 +72,7 @@ for each channel in currentShader'sChannels
 Draw final shader to screen
 
 
+
+Options for channels to final output
+- one, predefined "main channel" (could be old shader stuff)
+- last, or first, channel is the output

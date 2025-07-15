@@ -46,19 +46,7 @@ var (
 
 type Channel struct {
 	shaderFileName string
-	textures       []uint32
 
-	vertexID   uint32
-	fragmentID uint32
-}
-
-type OpenGLProgram struct {
-	shaderFileName string
-	jsonFileName   string
-	directory      string
-	renderFBO      uint32
-
-	// Data for channels
 	programID  uint32
 	vertexID   uint32
 	fragmentID uint32
@@ -66,6 +54,24 @@ type OpenGLProgram struct {
 	vbo        uint32
 	vao        uint32
 	fbo        uint32
+}
+
+type OpenGLProgram struct {
+	//shaderFileName string
+	jsonFileName string
+	directory    string
+	//renderFBO    uint32
+
+	mainChannel   *Channel
+	extraChannels []*Channel
+	// Data for channels
+	//programID  uint32
+	//vertexID   uint32
+	//fragmentID uint32
+	//textures   []uint32
+	//vbo        uint32
+	//vao        uint32
+	//fbo        uint32
 
 	videos []*VideoData
 
@@ -133,6 +139,52 @@ func glTerminate() {
 	glfw.Terminate()
 }
 
+func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel {
+
+	vao, vbo := makeQuadVaoVbo(quad)
+	prog := gl.CreateProgram()
+
+	fragSrc, err := getTextFromFile(program.directory + program.folder + channelData.ShaderPath)
+
+	if err != nil {
+		panic("Error getting file ")
+	}
+
+	vertex, frag := createShaders(fragSrc, vertexShaderSource)
+	gl.AttachShader(prog, vertex)
+	gl.AttachShader(prog, frag)
+	gl.LinkProgram(prog)
+	gl.UseProgram(prog)
+
+	var fbo uint32 = 0
+	//if program.recordFPS > 0 {
+	gl.GenFramebuffers(1, &fbo)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, fbo)
+	//globalDat.renderFBO = fbo
+
+	var texture uint32 = 0
+	gl.GenTextures(1, &texture)
+	gl.BindTexture(gl.TEXTURE_2D, texture)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(program.width), int32(program.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+	gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
+	//}
+
+	retChannel := Channel{
+		programID:      prog,
+		vertexID:       vertex,
+		fragmentID:     frag,
+		fbo:            fbo,
+		shaderFileName: channelData.ShaderPath,
+		vao:            vao,
+		vbo:            vbo,
+		textures:       []uint32{},
+	}
+
+	LoadOpenGLDataFromInputFile(program, &channelData, &retChannel)
+
+	return retChannel
+}
+
 func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	if err := gl.Init(); err != nil {
 		panic(err)
@@ -143,53 +195,31 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	prefix := dir
 	folder := in.Folder + "/"
 
-	var fragSrc string
-	var err error
+	//if len(in.Channels) > 0 {
+	//	fragSrc, err = getTextFromFile(prefix + folder + in.Channels[0].ShaderPath)
+	//} else {
+	//}
 
-	if len(in.Channels) > 0 {
-		fragSrc, err = getTextFromFile(prefix + folder + in.Channels[0].ShaderPath)
-	} else {
-		fragSrc, err = getTextFromFile(prefix + folder + in.ShaderPath)
-	}
+	//	Channel{
+	//			programID:      prog,
+	//			shaderFileName: in.ShaderPath,
+	//			vertexID:       vertex,
+	//			fragmentID:     frag,
+	//			textures:       []uint32{},
+	//			vao:            vao,
+	//			vbo:            vbo,
+	//			fbo:            fbo,
+	//		},
 
-	if err != nil {
-		panic("Error getting file ")
-	}
-
-	vao, vbo := makeQuadVaoVbo(quad)
-	prog := gl.CreateProgram()
-	vertex, frag := createShaders(fragSrc, vertexShaderSource)
-	gl.AttachShader(prog, vertex)
-	gl.AttachShader(prog, frag)
-	gl.LinkProgram(prog)
-	gl.UseProgram(prog)
-
-	var fbo uint32 = 0
-	if in.RecordFPS > 0 {
-		gl.GenFramebuffers(1, &fbo)
-		gl.BindFramebuffer(gl.FRAMEBUFFER, fbo)
-		//globalDat.renderFBO = fbo
-
-		var texture uint32 = 0
-		gl.GenTextures(1, &texture)
-		gl.BindTexture(gl.TEXTURE_2D, texture)
-		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(in.Width), int32(in.Height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
-		gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
-	}
-
+	glfw.SetTime(0)
 	retProg := OpenGLProgram{
-		programID:    prog,
 		jsonFileName: filename,
 		directory:    prefix,
 		folder:       folder,
-		renderFBO:    fbo,
+		//renderFBO:    fbo,
 
-		shaderFileName: in.ShaderPath,
-		vertexID:       vertex,
-		fragmentID:     frag,
-		textures:       []uint32{},
-		vao:            vao,
-		vbo:            vbo,
+		mainChannel:   nil,
+		extraChannels: []*Channel{},
 
 		videos:        []*VideoData{},
 		recordFPS:     in.RecordFPS,
@@ -200,15 +230,21 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		timesRendered: 0,
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
+	// But actually, unless we're recording, main channel should go straight to window (CHANGE FBO)
+	mainChan := initializeChannel(&retProg, ChannelJson{ShaderPath: in.ShaderPath, Textures: in.Textures})
+	retProg.mainChannel = &mainChan
+	retProg.mainChannel.fbo = 0
 
-	LoadOpenGLDataFromInputFile(&retProg, in)
-	glfw.SetTime(0)
+	for _, info := range in.Channels {
+		newChan := initializeChannel(&retProg, info)
+		retProg.extraChannels = append(retProg.extraChannels, &newChan)
+	}
 
 	return retProg
 }
 
 func regenerateShader(program *OpenGLProgram) {
-	prog := program.programID
+	/*prog := program.programID
 
 	fragSrc, err := getTextFromFile(program.directory + program.folder + program.shaderFileName)
 
@@ -228,10 +264,13 @@ func regenerateShader(program *OpenGLProgram) {
 	gl.AttachShader(prog, vertex)
 	gl.AttachShader(prog, frag)
 	gl.LinkProgram(prog)
-	program.time = 0
+	program.time = 0*/
 }
 
-func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
+func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, outChannel *Channel) {
+	// TODO: video texture caching
+	// If two channels have the same vid, they should use the same texture id
+
 	var newTextures []uint32
 	var newVideos []*VideoData
 
@@ -253,10 +292,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		// currentMatIndex: 0,
 	}
 
-	gl.BindVertexArray(prog.vao)
-
-	loc := gl.GetUniformLocation(prog.programID, gl.Str("res\x00"))
-	gl.Uniform2f(loc, float32(input.Width), float32(input.Height))
+	//gl.BindVertexArray(prog.vao)
 
 	type TextureType uint8
 	const (
@@ -267,13 +303,13 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 	)
 
 	// TODO: What if out of range? More than 32 textures?
-	for i, fileTexturePath := range input.Textures {
+	for _, fileTexturePath := range channelData.Textures {
 
 		textureType := INVALID
 
 		// Add the file prefix thing?
 		// Want to be able to run json from anywhere and have the whole thing just work
-		texturePath := /*prog.filePrefix + "/" +*/ prog.directory + input.Folder + "/" + fileTexturePath
+		texturePath := /*prog.filePrefix + "/" +*/ prog.directory + prog.folder + "/" + fileTexturePath
 
 		if fileTexturePath == "WEBCAM" {
 			textureType = WEBCAM
@@ -283,7 +319,12 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 			textureType = VIDEO
 		}
 
-		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
+		// TODO: some smarter active texture stuff
+		// Index of all the textures that have been loaded thus far
+		// Then just iteratively add active textures everytime this function is called
+		// Then smartly assign the uniforms to the right textures based on channel location n stuff
+		// for now, too bad!
+		//gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
 		var texture uint32
 		var vidData *VideoData
 
@@ -307,19 +348,54 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 		//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
 		//vidData.video.Read(&writerData.material)
 
+		//str := fmt.Sprintf("tex%d", i)
+		//textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
+		//gl.Uniform1i(textureUniform, int32(i))
+	}
+
+	outChannel.textures = newTextures
+
+	for _, vid := range newVideos {
+		prog.videos = append(prog.videos, vid)
+	}
+}
+
+func drawChannel(program *OpenGLProgram, channel *Channel, width int32, height int32, elapsed float32) {
+
+	if channel == nil {
+		panic("nil channel in draw")
+	}
+
+	gl.UseProgram(channel.programID)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, channel.fbo)
+	gl.Viewport(0, 0, width, height)
+	gl.Uniform1f(gl.GetUniformLocation(channel.programID, gl.Str("deltaTime\x00")), elapsed)
+	gl.Uniform1f(gl.GetUniformLocation(channel.programID, gl.Str("iTime\x00")), float32(program.time))
+
+	loc := gl.GetUniformLocation(channel.programID, gl.Str("res\x00"))
+	gl.Uniform2f(loc, float32(program.width), float32(program.height))
+
+	// GO THROUGH TEXTURES AND ACTIVATE THEM
+	for i, texID := range channel.textures {
+		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
+		gl.BindTexture(gl.TEXTURE_2D, texID)
 		str := fmt.Sprintf("tex%d", i)
-		textureUniform := gl.GetUniformLocation(prog.programID, gl.Str(str+"\x00"))
+		textureUniform := gl.GetUniformLocation(channel.programID, gl.Str(str+"\x00"))
 		gl.Uniform1i(textureUniform, int32(i))
 	}
 
-	prog.textures = newTextures
-	prog.videos = newVideos
+	// Draw to screen or to rendering
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.BindVertexArray(channel.vao)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
+
+	//gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+
 }
 
 func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 
 	// gl.Viewport(0, 0, int32(program.width*2), int32(program.height*2))
-	gl.UseProgram(program.programID)
 
 	isLiveVideo := program.recordFPS < 0
 
@@ -335,13 +411,14 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 
 	var elapsed float64
 	var w, h int
+
 	// Update appropriate variables
 	if isLiveVideo {
 		elapsed := glfw.GetTime() - previousTime
 		previousTime = glfw.GetTime()
 		program.time += elapsed
 
-		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+		//gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		w, h = window.GetFramebufferSize()
 	} else {
 
@@ -350,25 +427,19 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 
 		fmt.Printf("time %f %d %d\n", program.time, program.recordFPS, program.timesRendered)
 
-		gl.BindFramebuffer(gl.FRAMEBUFFER, program.renderFBO)
 		w = program.width
 		h = program.height
 	}
-	gl.Viewport(0, 0, int32(w), int32(h))
-	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("deltaTime\x00")), float32(elapsed))
-	gl.Uniform1f(gl.GetUniformLocation(program.programID, gl.Str("iTime\x00")), float32(program.time))
 
 	for _, vid := range program.videos {
 		updateVideo(program.time, vid)
 		fmt.Println(vid.material.Type().String())
 	}
 
-	// Draw to screen or to rendering
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.BindVertexArray(program.vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
-
-	gl.BindFramebuffer(gl.FRAMEBUFFER, program.renderFBO)
+	for _, channel := range program.extraChannels {
+		drawChannel(program, channel, int32(w), int32(h), float32(elapsed))
+	}
+	drawChannel(program, (program.mainChannel), int32(w), int32(h), float32(elapsed))
 
 	if !isLiveVideo {
 		fWidth, fHeight := window.GetFramebufferSize()
@@ -384,17 +455,17 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 // FREEING FUNCTIONS
 func CleanUp(prog *OpenGLProgram) {
 
-	for _, texture := range prog.textures {
-		gl.DeleteTextures(1, &texture)
-	}
+	//for _, texture := range prog.textures {
+	//	gl.DeleteTextures(1, &texture)
+	//}
 
-	for _, vid := range prog.videos {
-		vid.material.Close()
-		vid.video.Close()
-	}
-	gl.DeleteVertexArrays(1, &prog.vao)
-	gl.DeleteBuffers(1, &prog.vbo)
-	gl.DeleteProgram(prog.programID)
+	//for _, vid := range prog.videos {
+	//	vid.material.Close()
+	//	vid.video.Close()
+	//}
+	//gl.DeleteVertexArrays(1, &prog.vao)
+	//gl.DeleteBuffers(1, &prog.vbo)
+	//gl.DeleteProgram(prog.programID)
 
 	if videoWriter != nil {
 		videoWriter.Close()

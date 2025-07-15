@@ -162,7 +162,7 @@ func (dat *VideoData) ReadAllFrames() {
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 	//fmt.Printf("%s", data.directory+data.shaderFileName+".avi")
-	writer, err := gocv.VideoWriterFile(data.directory+data.shaderFileName+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
+	writer, err := gocv.VideoWriterFile(data.directory+data.folder+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
 
 	if err != nil {
 		fmt.Println("Video writer creation error " + err.Error())
