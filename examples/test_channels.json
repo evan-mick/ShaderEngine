@@ -1,0 +1,15 @@
+{
+    "width": 1920,
+    "height": 1080,
+    "fullscreen": true,
+    "folder": "test",
+    "recordfps": -1,
+    "channels": [
+            {
+                "shader": "main.frag",
+                "textures": [
+                    "gopher.jpg"
+                ]
+            }
+    ]
+}

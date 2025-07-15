@@ -129,6 +129,8 @@ func loadPictureAsTexture(file string) uint32 {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(rgba.Pix))
 
+	gl.BindTexture(gl.TEXTURE_2D, 0)
+
 	return texture
 }
 
@@ -152,6 +154,9 @@ func setupVideo(file string) (uint32, *VideoData) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	video.texture = texture
+
+	gl.BindTexture(gl.TEXTURE_2D, 0)
+
 	return texture, video
 	// rgbaMain = rgba
 	// return video
@@ -183,4 +188,6 @@ func updateVideo(seconds float64, video *VideoData) {
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(ptr))
+
+	gl.BindTexture(gl.TEXTURE_2D, 0)
 }

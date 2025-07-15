@@ -18,14 +18,12 @@ import (
 const (
 	vertexShaderSource = `
 		#version 410
-		// attribute vec2 vertexIn;
 		layout (location = 0) in vec3 position;
 
 		out vec2 uv; 
 
 		void main() {
 			uv = (position.xy * 0.5) + 0.5;
-			// uv.y = 1.0 - uv.y; 
 			gl_Position = vec4(position.x, -position.y, 0.0, 1.0);
 		}
 	` + "\x00"
@@ -45,6 +43,10 @@ var (
 
 	previousTime float64
 )
+
+type Channel struct {
+	textures []uint32
+}
 
 type OpenGLProgram struct {
 	programID      uint32
@@ -140,7 +142,14 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	prefix := dir
 	folder := in.Folder + "/"
 
-	fragSrc, err := getTextFromFile(prefix + folder + in.ShaderPath)
+	var fragSrc string
+	var err error
+
+	if len(in.Channels) > 0 {
+		fragSrc, err = getTextFromFile(prefix + folder + in.Channels[0].ShaderPath)
+	} else {
+		fragSrc, err = getTextFromFile(prefix + folder + in.ShaderPath)
+	}
 
 	if err != nil {
 		panic("Error getting file ")
@@ -289,6 +298,7 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, input *InputFile) {
 			texture, vidData = setupVideo("WEBCAM")
 			newVideos = append(newVideos, vidData)
 		}
+		gl.BindTexture(gl.TEXTURE_2D, texture)
 		newTextures = append(newTextures, texture)
 
 		//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
