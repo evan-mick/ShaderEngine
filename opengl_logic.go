@@ -65,21 +65,11 @@ type Channel struct {
 }
 
 type OpenGLProgram struct {
-	//shaderFileName string
 	jsonFileName string
 	directory    string
-	//renderFBO    uint32
 
 	mainChannel   *Channel
 	extraChannels []*Channel
-	// Data for channels
-	//programID  uint32
-	//vertexID   uint32
-	//fragmentID uint32
-	//textures   []uint32
-	//vbo        uint32
-	//vao        uint32
-	//fbo        uint32
 
 	videos []*VideoData
 
@@ -207,22 +197,6 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	prefix := dir
 	folder := in.Folder + "/"
 
-	//if len(in.Channels) > 0 {
-	//	fragSrc, err = getTextFromFile(prefix + folder + in.Channels[0].ShaderPath)
-	//} else {
-	//}
-
-	//	Channel{
-	//			programID:      prog,
-	//			shaderFileName: in.ShaderPath,
-	//			vertexID:       vertex,
-	//			fragmentID:     frag,
-	//			textures:       []uint32{},
-	//			vao:            vao,
-	//			vbo:            vbo,
-	//			fbo:            fbo,
-	//		},
-
 	glfw.SetTime(0)
 	retProg := OpenGLProgram{
 		jsonFileName: filename,
@@ -286,27 +260,6 @@ func regenerateShader(program *OpenGLProgram) {
 	for _, channel := range program.extraChannels {
 		safeReloadChannelProgram(program, channel)
 	}
-	/*prog := program.programID
-
-	fragSrc, err := getTextFromFile(program.directory + program.folder + program.shaderFileName)
-
-	gl.DetachShader(prog, program.vertexID)
-	gl.DetachShader(prog, program.fragmentID)
-
-	if err != nil {
-		panic("Error getting file ")
-	}
-
-	vertex, frag := createShaders(fragSrc, vertexShaderSource)
-
-	program.vertexID = vertex
-	program.fragmentID = frag
-
-	gl.UseProgram(prog)
-	gl.AttachShader(prog, vertex)
-	gl.AttachShader(prog, frag)
-	gl.LinkProgram(prog)
-	program.time = 0*/
 }
 
 func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, outChannel *Channel) {
@@ -395,7 +348,6 @@ func LoadOpenGLDataFromInputFile(prog *OpenGLProgram, channelData *ChannelJson, 
 				texture = prog.extraChannels[chanVal].fboTexture
 			}
 		}
-		//gl.BindTexture(gl.TEXTURE_2D, texture)
 		newTextures = append(newTextures, texture)
 
 		//vidData.video.Set(gocv.VideoCapturePosFrames, 0)
@@ -451,8 +403,6 @@ func drawChannel(program *OpenGLProgram, channel *Channel, width int32, height i
 
 func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 
-	// gl.Viewport(0, 0, int32(program.width*2), int32(program.height*2))
-
 	isLiveVideo := program.recordFPS < 0
 
 	if !isLiveVideo && program.time >= float64(program.recordSeconds) {
@@ -474,10 +424,8 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 		previousTime = glfw.GetTime()
 		program.time += elapsed
 
-		//gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		w, h = window.GetFramebufferSize()
 	} else {
-
 		program.time = float64(program.timesRendered) / float64(program.recordFPS)
 		elapsed = 1.0 / float64(program.recordFPS)
 
@@ -508,24 +456,33 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 	return false
 }
 
+func cleanChannel(channel *Channel) {
+	gl.DeleteProgram(channel.programID)
+
+	for _, tex := range channel.textures {
+		gl.DeleteTextures(1, &tex)
+	}
+	gl.DeleteFramebuffers(1, &channel.fbo)
+	gl.DeleteVertexArrays(1, &channel.vao)
+	gl.DeleteBuffers(1, &channel.vbo)
+	// Potential issue: double delete the same fbo texture? bc that's what's accessed from other channels
+	gl.DeleteTextures(1, &channel.fboTexture)
+}
+
 // FREEING FUNCTIONS
 func CleanUp(prog *OpenGLProgram) {
 
-	//for _, texture := range prog.textures {
-	//	gl.DeleteTextures(1, &texture)
-	//}
+	cleanChannel(prog.mainChannel)
+	for _, channel := range prog.extraChannels {
+		cleanChannel(channel)
+	}
 
-	//for _, vid := range prog.videos {
-	//	vid.material.Close()
-	//	vid.video.Close()
-	//}
-	//gl.DeleteVertexArrays(1, &prog.vao)
-	//gl.DeleteBuffers(1, &prog.vbo)
-	//gl.DeleteProgram(prog.programID)
+	for _, vid := range prog.videos {
+		vid.material.Close()
+		vid.video.Close()
+	}
 
 	if videoWriter != nil {
 		videoWriter.Close()
 	}
 }
-
-//func genBuffers

@@ -163,8 +163,6 @@ func setupVideo(file string) (uint32, *VideoData) {
 	gl.BindTexture(gl.TEXTURE_2D, 0)
 
 	return texture, video
-	// rgbaMain = rgba
-	// return video
 }
 
 func updateVideo(seconds float64, video *VideoData) {
@@ -181,7 +179,6 @@ func updateVideo(seconds float64, video *VideoData) {
 	}
 	ptr := video.GetData()
 
-	//gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
@@ -194,5 +191,4 @@ func updateVideo(seconds float64, video *VideoData) {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(ptr))
 
-	//gl.BindTexture(gl.TEXTURE_2D, 0)
 }
