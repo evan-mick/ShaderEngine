@@ -39,13 +39,13 @@ var (
 		//-0.5, 0.5, 0,
 		//-0.5, -0.5, 0,
 		//0.5, -0.5, 0,
-		1, -1, 0,
-		1, 1, 0,
-		-1, 1, 0,
-
 		-1, 1, 0,
 		-1, -1, 0,
 		1, -1, 0,
+
+		1, -1, 0,
+		1, 1, 0,
+		-1, 1, 0,
 	}
 
 	previousTime float64
@@ -470,7 +470,7 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 	}
 
 	for _, channel := range program.extraChannels {
-		drawChannel(program, channel, int32(w), int32(h), float32(elapsed))
+		drawChannel(program, channel, int32(program.width), int32(program.height), float32(elapsed))
 	}
 	drawChannel(program, program.mainChannel, int32(w), int32(h), float32(elapsed))
 

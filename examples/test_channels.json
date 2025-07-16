@@ -7,7 +7,8 @@
     "shader": "main.frag",
     "textures": [
         "0",
-        "WEBCAM"
+        "WEBCAM",
+        "1"
     ],
     "channels": [
             {
@@ -15,6 +16,9 @@
                 "textures": [
                     "gopher.jpg"
                 ]
+            },
+            {
+                "shader": "channel1.frag"
             }
     ]
 }
