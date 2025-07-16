@@ -11,6 +11,7 @@ import (
 
 var paused bool = false
 var lastKey glfw.Action = -1
+var autoHotReload bool = false
 
 func main() {
 
@@ -53,11 +54,19 @@ func main() {
 
 	program := initGLProgram(&in, file)
 
+	var lastReloadTime float64 = 0
+
 	// vao := makeVao(quad)
 	var finished = false
 	for !window.ShouldClose() && !finished {
 		finished = glDraw(window, &program)
 		checkInputs(window, &program, &in)
+
+		elapsed := glfw.GetTime() - float64(lastReloadTime)
+		if autoHotReload && elapsed > 1.0 {
+			lastReloadTime = glfw.GetTime()
+			regenerateShader(&program)
+		}
 	}
 
 	glTerminate()
@@ -77,6 +86,9 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 	} else if window.GetKey(glfw.KeyT) == glfw.Press {
 		program.time = 0
 	} else if window.GetKey(glfw.KeyC) == glfw.Press {
+
+	} else if window.GetKey(glfw.KeyH) == glfw.Press {
+		autoHotReload = !autoHotReload
 
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN

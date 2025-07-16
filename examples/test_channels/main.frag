@@ -13,10 +13,9 @@ in vec2 uv;
 uniform vec2 res;
 
 void main() {
-    //vec4 a = texture(tex0, vec2(uv.x, 1.0 - uv.y));
     vec2 flipUV = vec2(uv.x, 1.0 - uv.y);
     vec4 a = (uv.x > 0.5) ?
         ((uv.y > 0.5) ?
-        texture(tex2, flipUV) : texture(tex0, flipUV)) : texture(tex1, uv); //+ vec2(0.0, 0.1 * sin(iTime + uv.y * 10.0)));
+        texture(tex2, flipUV) : texture(tex0, flipUV)) : texture(tex1, uv);
     fragColor = a;
 }

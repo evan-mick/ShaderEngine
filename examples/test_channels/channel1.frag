@@ -11,5 +11,5 @@ in vec2 uv;
 uniform vec2 res;
 
 void main() {
-    fragColor = vec4((sin(iTime) * 0.5) + 1.0, 0.0, 0.0, 1.0);
+    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

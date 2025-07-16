@@ -262,7 +262,30 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	return retProg
 }
 
+func safeReloadChannelProgram(program *OpenGLProgram, channel *Channel) {
+
+	fragSrc, err := getTextFromFile(program.directory + program.folder + channel.shaderFileName)
+	if err != nil || !fragShaderCompilable(fragSrc) {
+		return
+	}
+
+	newFragmentShader, err := compileShader(fragSrc, gl.FRAGMENT_SHADER)
+	if err != nil {
+		return
+	}
+	gl.DetachShader(channel.programID, channel.fragmentID)
+	gl.AttachShader(channel.programID, newFragmentShader)
+	gl.LinkProgram(channel.programID)
+
+	channel.fragmentID = newFragmentShader
+}
+
 func regenerateShader(program *OpenGLProgram) {
+	safeReloadChannelProgram(program, program.mainChannel)
+
+	for _, channel := range program.extraChannels {
+		safeReloadChannelProgram(program, channel)
+	}
 	/*prog := program.programID
 
 	fragSrc, err := getTextFromFile(program.directory + program.folder + program.shaderFileName)
