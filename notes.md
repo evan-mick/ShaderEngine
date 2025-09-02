@@ -36,6 +36,7 @@ Buffers: [
 	}
 	// This would be Buffer1
 	{
+    //vec4 a = texture(tex0, vec2(uv.x, 1.0 - uv.y));
 		Code: "(GLSL CODE HERE)",
 		Channels: [
 			"CHANNEL_TYPE",
@@ -46,6 +47,7 @@ Buffers: [
 
 
 
+    //vec4 a = texture(tex0, vec2(uv.x, 1.0 - uv.y));
 Backend design
 -> parser
     -> creates structs from stuff
@@ -72,3 +74,7 @@ for each channel in currentShader'sChannels
 Draw final shader to screen
 
 
+
+Options for channels to final output
+- one, predefined "main channel" (could be old shader stuff)
+- last, or first, channel is the output

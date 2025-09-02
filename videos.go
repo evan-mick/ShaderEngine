@@ -37,7 +37,9 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 	var video *gocv.VideoCapture
 	var err error = nil
 
-	if file == "WEBCAM" {
+	isWebcam := file == "WEBCAM"
+
+	if isWebcam {
 		video, err = gocv.OpenVideoCapture(0)
 	} else {
 		video, err = gocv.OpenVideoCapture(file)
@@ -59,8 +61,8 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 		height:           int(video.Get(gocv.VideoCaptureFrameHeight)),
 		currentFrame:     -1,
 		material:         &setMat,
-		allFrames:        make([]*gocv.Mat, 0, frames),
-		webcam:           (file == "WEBCAM"),
+		allFrames:        make([]*gocv.Mat, 0, max(frames, 0)),
+		webcam:           isWebcam,
 		removeBackground: true,
 		filename:         file,
 		// materials:       []gocv.Mat{gocv.Mat{}, gocv.Mat{}, gocv.Mat{}},
@@ -162,7 +164,7 @@ func (dat *VideoData) ReadAllFrames() {
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 	//fmt.Printf("%s", data.directory+data.shaderFileName+".avi")
-	writer, err := gocv.VideoWriterFile(data.directory+data.shaderFileName+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
+	writer, err := gocv.VideoWriterFile(data.directory+data.folder+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
 
 	if err != nil {
 		fmt.Println("Video writer creation error " + err.Error())

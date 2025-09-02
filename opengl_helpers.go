@@ -19,6 +19,11 @@ var globalCVHelper CVHelpers = CVHelpers{
 	gocv.NewBackgroundSubtractorKNN(),
 }*/
 
+func fragShaderCompilable(src string) bool {
+	_, err := compileShader(src, gl.FRAGMENT_SHADER)
+	return err == nil
+}
+
 func createShaders(fragSrc string, vertSrc string) (vertexShader uint32, fragmentShader uint32) {
 
 	vertexShader, err := compileShader(vertSrc, gl.VERTEX_SHADER)
@@ -129,6 +134,8 @@ func loadPictureAsTexture(file string) uint32 {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(rgba.Pix))
 
+	gl.BindTexture(gl.TEXTURE_2D, 0)
+
 	return texture
 }
 
@@ -152,9 +159,10 @@ func setupVideo(file string) (uint32, *VideoData) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	video.texture = texture
+
+	gl.BindTexture(gl.TEXTURE_2D, 0)
+
 	return texture, video
-	// rgbaMain = rgba
-	// return video
 }
 
 func updateVideo(seconds float64, video *VideoData) {
@@ -171,7 +179,6 @@ func updateVideo(seconds float64, video *VideoData) {
 	}
 	ptr := video.GetData()
 
-	//gl.ActiveTexture(video.texture)
 	gl.BindTexture(gl.TEXTURE_2D, video.texture)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
@@ -183,4 +190,5 @@ func updateVideo(seconds float64, video *VideoData) {
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(ptr))
+
 }
