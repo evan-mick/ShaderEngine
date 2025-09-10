@@ -220,7 +220,10 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 	mainChanData := ChannelJson{ShaderPath: in.ShaderPath, Textures: in.Textures}
 	mainChan := initializeChannel(&retProg, mainChanData)
 	retProg.mainChannel = &mainChan
-	retProg.mainChannel.fbo = 0
+
+	if retProg.recordFPS < 0 {
+		retProg.mainChannel.fbo = 0
+	}
 
 	for _, info := range in.Channels {
 		newChan := initializeChannel(&retProg, info)
@@ -437,7 +440,7 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 
 	for _, vid := range program.videos {
 		updateVideo(program.time, vid)
-		fmt.Println(vid.material.Type().String())
+		//fmt.Println(vid.material.Type().String())
 	}
 
 	for _, channel := range program.extraChannels {
@@ -446,8 +449,8 @@ func glDraw(window *glfw.Window, program *OpenGLProgram) bool {
 	drawChannel(program, program.mainChannel, int32(w), int32(h), float32(elapsed))
 
 	if !isLiveVideo {
-		fWidth, fHeight := window.GetFramebufferSize()
-		writeData(int32(fWidth), int32(fHeight), int32(program.width), int32(program.height))
+		//fWidth, fHeight := window.GetFramebufferSize()
+		writeData(int32(program.width), int32(program.height))
 	}
 
 	program.timesRendered++

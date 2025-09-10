@@ -84,7 +84,7 @@ func CreateVideoFromFile(file string) (*VideoData, error) {
 }
 
 func (dat *VideoData) GetData() []uint8 {
-	fmt.Println("TYPE: " + dat.material.Type().String())
+	//fmt.Println("TYPE: " + dat.material.Type().String())
 	mat, err := dat.material.DataPtrUint8()
 	if err != nil {
 		fmt.Println("Get Data error " + err.Error())
@@ -164,7 +164,7 @@ func (dat *VideoData) ReadAllFrames() {
 
 func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 	//fmt.Printf("%s", data.directory+data.shaderFileName+".avi")
-	writer, err := gocv.VideoWriterFile(data.directory+data.folder+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
+	writer, err := gocv.VideoWriterFile(data.directory+data.folder+data.jsonFileName+".avi", "MPEG", float64(data.recordFPS), data.width, data.height, true)
 
 	if err != nil {
 		fmt.Println("Video writer creation error " + err.Error())
@@ -176,13 +176,16 @@ func setupVideoWriter(data *OpenGLProgram) *gocv.VideoWriter {
 
 // TODO: Change this so its setup based on the program
 // not even fully sure why it is video data rn
-// f stands for "framebuffer," o stands for "output"
-func writeData(fWidth int32, fHeight int32, oWidth int32, oHeight int32) {
+// o stands for "output"
+func writeData(oWidth int32, oHeight int32) {
 
+	//fWidth int32, fHeight int32, this used to be present, f for framebuffer
 	// pixels := make([]uint8, width*height*3)
 
 	// Read the pixels from the framebuffer
 	// gl.ReadPixels(0, 0, int32(width), int32(height), gl.RGB, gl.UNSIGNED_BYTE, gl.Ptr(&pixels[0]))
+
+	//fmt.Printf("Writing data %f %f %f %f", fWidth, fHeight, oWidth, oHeight)
 
 	img := image.NewRGBA(image.Rect(0, 0, int(oWidth), int(oHeight)))
 	// gl.ReadPixels(0, 0, fWidth, fHeight, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(img.Pix))
