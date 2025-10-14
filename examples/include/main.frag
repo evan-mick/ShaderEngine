@@ -1,4 +1,6 @@
 
+// the purpose of this is to test includes, and folder level start up
+
 uniform sampler2D tex0;
 uniform float iTime;
 uniform float deltaTime;

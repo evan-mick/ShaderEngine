@@ -54,7 +54,7 @@ shaderEngineExample.json
     "textures": [
 	"example_image.jpeg",
 	"video.mp4",
-        "WEBCAM"
+	"WEBCAM"
     ]
 }
 ```
@@ -85,9 +85,9 @@ There are a number of potential features I would like to add, here is a list so 
 - [ ] Remappable keywords
 - [ ] Ex. ala shadertoy time is "iTime" right now, but the json could rename that to "time" or "t" or whatever someone wants
 - [ ] Extra effects, including real time background removal (opencv)
-- [ ] "Include" other files, let you have something like a "common" file with reusuable functions and uniforms
+- [ X ] "Include" other files, letting you have something like a "common" file with reusuable functions and uniforms
 - [ ] Pass in command line arguments for things like input textures, or output file
-- [ ] pass in folder to executable, and it will look for json with the same name inside
+- [ X ] pass in folder to executable, and it will look for json with the same name inside
 
 ### Major, long term
 - Direct Music integration
