@@ -151,7 +151,6 @@ func getFullFragSrc(program *OpenGLProgram, shaderPath string) string {
 	// includes
 	for _, includePath := range program.includes {
 		includeSrc, err := getTextFromFile(program.directory + program.folder + includePath)
-		fmt.Println("INCLUDE " + includePath)
 
 		if err != nil {
 			fmt.Println("Error with include: " + err.Error())
@@ -172,8 +171,6 @@ func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel 
 	prog := gl.CreateProgram()
 
 	fullSrc := getFullFragSrc(program, channelData.ShaderPath)
-
-	fmt.Print(fullSrc)
 
 	vertex, frag := createShaders(fullSrc, vertexShaderSource)
 	gl.AttachShader(prog, vertex)

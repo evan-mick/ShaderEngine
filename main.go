@@ -80,7 +80,6 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 		// this is broken unsure why
 		CleanUp(program)
 		*program = initGLProgram(in, program.directory+program.jsonFileName)
-		fmt.Println("RELOADED!")
 		lastKey = window.GetKey(glfw.KeyR)
 	} else if window.GetKey(glfw.KeyS) == glfw.Press {
 		regenerateShader(program)
@@ -90,6 +89,7 @@ func checkInputs(window *glfw.Window, program *OpenGLProgram, in *InputFile) {
 
 	} else if window.GetKey(glfw.KeyH) == glfw.Press {
 		autoHotReload = !autoHotReload
+		fmt.Println("Hot reload toggled " + strconv.FormatBool(autoHotReload))
 
 	} else if window.GetKey(glfw.KeyF) == glfw.Press {
 		// FULLSCREEN

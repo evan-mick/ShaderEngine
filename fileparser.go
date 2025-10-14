@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 )
@@ -32,10 +31,15 @@ type InputFile struct {
 func ParseJsonToInputFile(filepath string) (InputFile, error) {
 
 	dat, err := os.ReadFile(filepath)
+	// A little extra logic for supporting passing in folders
+	isFolder := false
+	folder := ""
 
 	if err != nil {
 		_, suffix := path.Split(filepath)
 		dat, err = os.ReadFile(filepath + "/" + suffix + ".json") // try to find file version if folder
+		isFolder = true
+		folder = suffix
 
 		if err != nil {
 			return InputFile{}, err
@@ -43,9 +47,11 @@ func ParseJsonToInputFile(filepath string) (InputFile, error) {
 	}
 
 	var ret InputFile
-	err = json.Unmarshal(dat, &ret)
+	if isFolder {
+		ret.Folder = folder
+	}
 
-	fmt.Print(ret)
+	err = json.Unmarshal(dat, &ret)
 
 	if err != nil {
 		return InputFile{}, err
