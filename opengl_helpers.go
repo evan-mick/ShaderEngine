@@ -46,7 +46,7 @@ func getTextFromFile(filePath string) (string, error) {
 		return "", err
 	}
 	str := string(rawData)
-	str += "\x00"
+	str += "\n"
 
 	return str, nil
 

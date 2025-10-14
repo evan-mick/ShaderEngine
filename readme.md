@@ -85,6 +85,9 @@ There are a number of potential features I would like to add, here is a list so 
 - [ ] Remappable keywords
 - [ ] Ex. ala shadertoy time is "iTime" right now, but the json could rename that to "time" or "t" or whatever someone wants
 - [ ] Extra effects, including real time background removal (opencv)
+- [ ] "Include" other files, let you have something like a "common" file with reusuable functions and uniforms
+- [ ] Pass in command line arguments for things like input textures, or output file
+- [ ] pass in folder to executable, and it will look for json with the same name inside
 
 ### Major, long term
 - Direct Music integration
@@ -93,5 +96,8 @@ There are a number of potential features I would like to add, here is a list so 
 - Sequencing
 	- Timestamping (or "beatstamping") different shaders together
 	- "Events" at certain times
+- Shadertoy compatibility mode
+    - Copy and paste in shaders easily
+    - Ideally, can somehow download everything from a shadertoy website and then port 
 - (Long, long term) GUI
 - (Long, long term) program sharing website

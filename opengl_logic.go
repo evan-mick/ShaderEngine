@@ -68,6 +68,8 @@ type OpenGLProgram struct {
 	jsonFileName string
 	directory    string
 
+	includes []string
+
 	mainChannel   *Channel
 	extraChannels []*Channel
 
@@ -137,18 +139,43 @@ func glTerminate() {
 	glfw.Terminate()
 }
 
-func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel {
+func getFullFragSrc(program *OpenGLProgram, shaderPath string) string {
+	fullSrc := "#version 410\n"
 
-	vao, vbo := makeQuadVaoVbo(quad)
-	prog := gl.CreateProgram()
-
-	fragSrc, err := getTextFromFile(program.directory + program.folder + channelData.ShaderPath)
+	fragSrc, err := getTextFromFile(program.directory + program.folder + shaderPath)
 
 	if err != nil {
 		panic("Error getting file " + err.Error())
 	}
 
-	vertex, frag := createShaders(fragSrc, vertexShaderSource)
+	// includes
+	for _, includePath := range program.includes {
+		includeSrc, err := getTextFromFile(program.directory + program.folder + includePath)
+		fmt.Println("INCLUDE " + includePath)
+
+		if err != nil {
+			fmt.Println("Error with include: " + err.Error())
+			continue
+		}
+
+		fullSrc += includeSrc
+	}
+	fullSrc += fragSrc
+	fullSrc += "\x00"
+
+	return fullSrc
+}
+
+func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel {
+
+	vao, vbo := makeQuadVaoVbo(quad)
+	prog := gl.CreateProgram()
+
+	fullSrc := getFullFragSrc(program, channelData.ShaderPath)
+
+	fmt.Print(fullSrc)
+
+	vertex, frag := createShaders(fullSrc, vertexShaderSource)
 	gl.AttachShader(prog, vertex)
 	gl.AttachShader(prog, frag)
 	gl.LinkProgram(prog)
@@ -214,6 +241,7 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 		width:         in.Width,
 		height:        in.Height,
 		timesRendered: 0,
+		includes:      in.Includes,
 		//data:       []GLData{GLData{id: texture, dataType: T_TEXTURE}},
 	}
 	// But actually, unless we're recording, main channel should go straight to window (CHANGE FBO)
@@ -241,13 +269,16 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 
 func safeReloadChannelProgram(program *OpenGLProgram, channel *Channel) {
 
-	fragSrc, err := getTextFromFile(program.directory + program.folder + channel.shaderFileName)
-	if err != nil || !fragShaderCompilable(fragSrc) {
-		return
-	}
+	//fragSrc, err := getTextFromFile(program.directory + program.folder + channel.shaderFileName)
+	fragSrc := getFullFragSrc(program, channel.shaderFileName)
+
+	//if err != nil || !fragShaderCompilable(fragSrc) {
+	//	panic("Program directory failure in safe reload (THIS SHOUlD NEVER HAPPEN!)")
+	//}
 
 	newFragmentShader, err := compileShader(fragSrc, gl.FRAGMENT_SHADER)
 	if err != nil {
+		fmt.Println("Frag shader compilation error: " + err.Error())
 		return
 	}
 	gl.DetachShader(channel.programID, channel.fragmentID)

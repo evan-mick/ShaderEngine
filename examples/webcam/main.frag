@@ -1,5 +1,3 @@
-#version 410
-
 uniform sampler2D tex0;
 uniform float iTime;
 uniform float deltaTime; 

@@ -62,6 +62,7 @@ func main() {
 		finished = glDraw(window, &program)
 		checkInputs(window, &program, &in)
 
+		// Hot reload
 		elapsed := glfw.GetTime() - float64(lastReloadTime)
 		if autoHotReload && elapsed > 1.0 {
 			lastReloadTime = glfw.GetTime()

@@ -1,0 +1,11 @@
+{
+    "width": 1920,
+    "height": 1080,
+    "fullscreen": true,
+    "folder": "include",
+    "recordfps": -1,
+    "shader": "main.frag",
+    "includes": [
+        "include.frag"
+    ]
+}

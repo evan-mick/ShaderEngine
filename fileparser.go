@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 )
 
 type ChannelJson struct {
@@ -23,6 +24,9 @@ type InputFile struct {
 	Textures   []string `json:"textures"`
 
 	Channels []ChannelJson `json:channels`
+
+	// Though this is frag code, it is global
+	Includes []string `json:includes`
 }
 
 func ParseJsonToInputFile(filepath string) (InputFile, error) {
@@ -30,7 +34,12 @@ func ParseJsonToInputFile(filepath string) (InputFile, error) {
 	dat, err := os.ReadFile(filepath)
 
 	if err != nil {
-		return InputFile{}, err
+		_, suffix := path.Split(filepath)
+		dat, err = os.ReadFile(filepath + "/" + suffix + ".json") // try to find file version if folder
+
+		if err != nil {
+			return InputFile{}, err
+		}
 	}
 
 	var ret InputFile

@@ -1,5 +1,3 @@
-#version 410
-
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
