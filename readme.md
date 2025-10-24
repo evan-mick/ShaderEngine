@@ -87,7 +87,11 @@ There are a number of potential features I would like to add, here is a list so 
 - [ ] Extra effects, including real time background removal (opencv)
 - [ X ] "Include" other files, letting you have something like a "common" file with reusuable functions and uniforms
 - [ ] Pass in command line arguments for things like input textures, or output file
+- [ ] Partial video loading (for faster load times for prototyping). specifiy you only want the first X seconds of a video.
+    - also faster load times in general, probably some optimizations
+- [ ] Load shader without the need of completely loading video files
 - [ X ] pass in folder to executable, and it will look for json with the same name inside
+- [ ] First class piping + scriting support, some way to input something, then have the output file be the input for something like an ffmpeg script
 
 ### Major, long term
 - Direct Music integration

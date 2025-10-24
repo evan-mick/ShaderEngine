@@ -139,13 +139,14 @@ func glTerminate() {
 	glfw.Terminate()
 }
 
-func getFullFragSrc(program *OpenGLProgram, shaderPath string) string {
+func getFullFragSrc(program *OpenGLProgram, shaderPath string) (string, error) {
 	fullSrc := "#version 410\n"
 
 	fragSrc, err := getTextFromFile(program.directory + program.folder + shaderPath)
 
 	if err != nil {
-		panic("Error getting file " + err.Error())
+		//panic("Error getting file " + err.Error())
+		return "", err
 	}
 
 	// includes
@@ -162,7 +163,7 @@ func getFullFragSrc(program *OpenGLProgram, shaderPath string) string {
 	fullSrc += fragSrc
 	fullSrc += "\x00"
 
-	return fullSrc
+	return fullSrc, nil
 }
 
 func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel {
@@ -170,7 +171,10 @@ func initializeChannel(program *OpenGLProgram, channelData ChannelJson) Channel 
 	vao, vbo := makeQuadVaoVbo(quad)
 	prog := gl.CreateProgram()
 
-	fullSrc := getFullFragSrc(program, channelData.ShaderPath)
+	fullSrc, err := getFullFragSrc(program, channelData.ShaderPath)
+	if err != nil {
+		panic("Error getting file " + err.Error())
+	}
 
 	vertex, frag := createShaders(fullSrc, vertexShaderSource)
 	gl.AttachShader(prog, vertex)
@@ -267,7 +271,25 @@ func initGLProgram(in *InputFile, full_filepath string) OpenGLProgram {
 func safeReloadChannelProgram(program *OpenGLProgram, channel *Channel) {
 
 	//fragSrc, err := getTextFromFile(program.directory + program.folder + channel.shaderFileName)
-	fragSrc := getFullFragSrc(program, channel.shaderFileName)
+	var err error = nil
+
+	fragSrc, err := getFullFragSrc(program, channel.shaderFileName)
+
+	// Occasional bug where while saving the file doesn't exist, so just do a few attempts hoping it works
+	if err != nil {
+		attempts := 0
+		for err != nil && attempts < 20 {
+			fragSrc, err = getFullFragSrc(program, channel.shaderFileName)
+			attempts++
+		}
+
+		// But if even after attempts, then something has gone horribly wrong
+
+		if err != nil {
+			panic("Error getting file even after attempts, error: " + err.Error())
+		}
+
+	}
 
 	//if err != nil || !fragShaderCompilable(fragSrc) {
 	//	panic("Program directory failure in safe reload (THIS SHOUlD NEVER HAPPEN!)")
