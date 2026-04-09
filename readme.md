@@ -4,6 +4,7 @@
 Shader Engine is a tool for locally making OpenGL quad shaders. 
 It is heavily inspired by shader toy, with more functionality for recording and outputting videos.
 I work on this project quite casually, it is not feature complete, but it is very servicable for making videos out of shaders.
+Tested on Mac and Linux, idgaf about Windows, sorry!
 
 
 ## Running Shader Engine
