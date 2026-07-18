@@ -66,6 +66,7 @@ Notably, if the user switched the -1 in recordfps to any number greater than 0, 
 ## Dependencies
 
 The biggest external dependency that may cause headache for this project is OpenCV. It is mainly used for video reading and writing as well as its webcam support.
+- if you get this error "gocv.io/x/gocv: exec: "pkg-config": executable file not found in $PATH" on Mac, that means you don't have Opencv, you can install it easily with brew
 Part of the future plan is to add its effects as well, which is why it is being left in and I will not try to replace it with something more lightweight.
 OpenGL is also a major dependency, but that should come with most OS's. 
 
